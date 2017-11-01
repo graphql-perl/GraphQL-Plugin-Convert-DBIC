@@ -127,7 +127,8 @@ sub _make_pk_fields {
 }
 
 sub to_graphql {
-  my ($class, $dbic_schema) = @_;
+  my ($class, $dbic_schema_cb) = @_;
+  my $dbic_schema = $dbic_schema_cb->();
   my @ast = ({kind => 'scalar', name => 'DateTime'});
   my (%name2type, %name2column21, %name2pk21, %name2fk21);
   for my $source (map $dbic_schema->source($_), $dbic_schema->sources) {
@@ -270,7 +271,9 @@ GraphQL::Plugin::Convert::DBIC - convert DBIx::Class schema to GraphQL schema
 
   use GraphQL::Plugin::Convert::DBIC;
   use Schema;
-  my $converted = GraphQL::Plugin::Convert::DBIC->to_graphql(Schema->connect);
+  my $converted = GraphQL::Plugin::Convert::DBIC->to_graphql(
+    sub { Schema->connect }
+  );
   print $converted->{schema}->to_doc;
 
 =head1 DESCRIPTION
@@ -287,7 +290,11 @@ The C<Mutation> type is similar: one C<create/update/delete(type)> per
 
 =head1 ARGUMENTS
 
-To the C<to_graphql> method: a L<DBIx::Class::Schema> object.
+To the C<to_graphql> method: a code-ref returning a L<DBIx::Class::Schema>
+object. This is so it can be called during the conversion process,
+but also during execution of a long-running process to e.g. execute
+database queries, when the database handle passed to this method as a
+simple value might have expired.
 
 =head1 DEBUGGING
 

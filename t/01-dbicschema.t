@@ -8,7 +8,9 @@ use_ok 'GraphQL::Plugin::Convert::DBIC';
 
 my $expected = join '', <DATA>;
 my $dbic_class = 'Schema';
-my $converted = GraphQL::Plugin::Convert::DBIC->to_graphql($dbic_class->connect);
+my $converted = GraphQL::Plugin::Convert::DBIC->to_graphql(
+  sub { $dbic_class->connect }
+);
 my $got = $converted->{schema}->to_doc;
 #open my $fh, '>', 'tf'; print $fh $got; # uncomment to regenerate
 is $got, $expected;
