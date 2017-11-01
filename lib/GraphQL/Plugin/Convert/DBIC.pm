@@ -246,6 +246,23 @@ sub to_graphql {
   };
   +{
     schema => GraphQL::Schema->from_ast(\@ast),
+    resolver => sub {
+      my ($root_value, $args, $context, $info) = @_;
+      my $field_name = $info->{field_name};
+      DEBUG and _debug('DBIC.resolver', $root_value, $field_name, $args);
+      my $property = ref($root_value) eq 'HASH'
+        ? $root_value->{$field_name}
+        : $root_value;
+      return $property->($args, $context, $info) if ref $property eq 'CODE';
+      return $property
+        if ref $root_value eq 'HASH' or !$root_value->can($field_name);
+      return $root_value->$field_name($args, $context, $info)
+        if !UNIVERSAL::isa($root_value, 'DBIx::Class::Core');
+      # dbic search
+      my $rs = $root_value->$field_name;
+      $rs = [ $rs->all ] if $info->{return_type}->isa('GraphQL::Type::List');
+      return $rs;
+    },
   };
 }
 
