@@ -129,6 +129,7 @@ sub _make_pk_fields {
 sub to_graphql {
   my ($class, $dbic_schema_cb) = @_;
   my $dbic_schema = $dbic_schema_cb->();
+  my %root_value;
   my @ast = ({kind => 'scalar', name => 'DateTime'});
   my (%name2type, %name2column21, %name2pk21, %name2fk21);
   for my $source (map $dbic_schema->source($_), $dbic_schema->sources) {
@@ -182,9 +183,14 @@ sub to_graphql {
       map {
         my $name = $_;
         my $type = $name2type{$name};
+        my $pksearch_name = lcfirst $name;
+        my $input_search_name = "search$name";
+        $root_value{$pksearch_name} = sub {
+          [ $dbic_schema_cb->()->resultset($name)->search(shift) ]
+        };
         (
           # the PKs query
-          lcfirst($name) => {
+          $pksearch_name => {
             type => _apply_modifier('list', $name),
             args => {
               map {
@@ -196,7 +202,7 @@ sub to_graphql {
               } keys %{ $name2pk21{$name} }
             },
           },
-          "search$name" => {
+          $input_search_name => {
             description => 'list of ORs each of which is list of ANDs',
             type => _apply_modifier('list', $name),
             args => {
@@ -246,6 +252,7 @@ sub to_graphql {
   };
   +{
     schema => GraphQL::Schema->from_ast(\@ast),
+    root_value => \%root_value,
     resolver => sub {
       my ($root_value, $args, $context, $info) = @_;
       my $field_name = $info->{field_name};
