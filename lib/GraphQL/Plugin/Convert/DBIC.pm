@@ -126,6 +126,24 @@ sub _make_pk_fields {
   } keys %$pk21),
 }
 
+sub field_resolver {
+  my ($root_value, $args, $context, $info) = @_;
+  my $field_name = $info->{field_name};
+  DEBUG and _debug('DBIC.resolver', $root_value, $field_name, $args);
+  my $property = ref($root_value) eq 'HASH'
+    ? $root_value->{$field_name}
+    : $root_value;
+  return $property->($args, $context, $info) if ref $property eq 'CODE';
+  return $property
+    if ref $root_value eq 'HASH' or !$root_value->can($field_name);
+  return $root_value->$field_name($args, $context, $info)
+    if !UNIVERSAL::isa($root_value, 'DBIx::Class::Core');
+  # dbic search
+  my $rs = $root_value->$field_name;
+  $rs = [ $rs->all ] if $info->{return_type}->isa('GraphQL::Type::List');
+  return $rs;
+}
+
 sub to_graphql {
   my ($class, $dbic_schema_cb) = @_;
   my $dbic_schema = $dbic_schema_cb->();
@@ -253,23 +271,7 @@ sub to_graphql {
   +{
     schema => GraphQL::Schema->from_ast(\@ast),
     root_value => \%root_value,
-    resolver => sub {
-      my ($root_value, $args, $context, $info) = @_;
-      my $field_name = $info->{field_name};
-      DEBUG and _debug('DBIC.resolver', $root_value, $field_name, $args);
-      my $property = ref($root_value) eq 'HASH'
-        ? $root_value->{$field_name}
-        : $root_value;
-      return $property->($args, $context, $info) if ref $property eq 'CODE';
-      return $property
-        if ref $root_value eq 'HASH' or !$root_value->can($field_name);
-      return $root_value->$field_name($args, $context, $info)
-        if !UNIVERSAL::isa($root_value, 'DBIx::Class::Core');
-      # dbic search
-      my $rs = $root_value->$field_name;
-      $rs = [ $rs->all ] if $info->{return_type}->isa('GraphQL::Type::List');
-      return $rs;
-    },
+    resolver => \&field_resolver,
   };
 }
 
@@ -319,6 +321,14 @@ object. This is so it can be called during the conversion process,
 but also during execution of a long-running process to e.g. execute
 database queries, when the database handle passed to this method as a
 simple value might have expired.
+
+=head1 PACKAGE FUNCTIONS
+
+=head2 field_resolver
+
+This is available as C<\&GraphQL::Plugin::Convert::DBIC::field_resolver>
+in case it is wanted for use outside of the "bundle" of the C<to_graphql>
+method.
 
 =head1 DEBUGGING
 

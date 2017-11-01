@@ -39,6 +39,14 @@ but also during execution of a long-running process to e.g. execute
 database queries, when the database handle passed to this method as a
 simple value might have expired.
 
+# PACKAGE FUNCTIONS
+
+## field\_resolver
+
+This is available as `\&GraphQL::Plugin::Convert::DBIC::field_resolver`
+in case it is wanted for use outside of the "bundle" of the `to_graphql`
+method.
+
 # DEBUGGING
 
 To debug, set environment variable `GRAPHQL_DEBUG` to a true value.
