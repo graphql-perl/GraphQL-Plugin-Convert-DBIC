@@ -17,6 +17,7 @@ WriteMakefile(
     'Test::More' => '0.98',
     'DBIx::Class::Schema' => 0,
     'GraphQL' => '0.20', # plugin convert
+    'DBD::SQLite' => 0,
   },
   PREREQ_PM => {
     'DBIx::Class::Schema' => 0,
