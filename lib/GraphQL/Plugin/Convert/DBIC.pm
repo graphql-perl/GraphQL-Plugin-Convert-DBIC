@@ -103,6 +103,18 @@ sub _type2input {
   };
 }
 
+sub _type2searchinput {
+  my ($name, $column2rawtype, $name2pk21, $fk21, $column21, $name2type) = @_;
+  +{
+    kind => 'input',
+    name => "${name}SearchInput",
+    fields => {
+      (map { ($_ => { type => $column2rawtype->{$_} }) }
+        grep !$name2pk21->{$name}{$_}, keys %$column21),
+    },
+  };
+}
+
 sub _make_fk_fields {
   my ($name, $fk21, $name2type, $name2pk21) = @_;
   my $type = $name2type->{$name};
@@ -149,7 +161,10 @@ sub to_graphql {
   my $dbic_schema = $dbic_schema_cb->();
   my %root_value;
   my @ast = ({kind => 'scalar', name => 'DateTime'});
-  my (%name2type, %name2column21, %name2pk21, %name2fk21, %name2rel21);
+  my (
+    %name2type, %name2column21, %name2pk21, %name2fk21, %name2rel21,
+    %name2column2rawtype,
+  );
   for my $source (map $dbic_schema->source($_), $dbic_schema->sources) {
     my $name = _dbicsource2pretty($source);
     my %fields;
@@ -161,10 +176,12 @@ sub to_graphql {
     for my $column (keys %$columns_info) {
       my $info = $columns_info->{$column};
       DEBUG and _debug("schema_dbic2graphql($name.col)", $column, $info);
+      my $rawtype = $TYPEMAP{ lc $info->{data_type} };
+      $name2column2rawtype{$name}->{$column} = $rawtype;
       $fields{$column} = +{
         type => _apply_modifier(
           !$info->{is_nullable} && 'non_null',
-          $TYPEMAP{ lc $info->{data_type} }
+          $rawtype
             // die "'$column' unknown data type: @{[lc $info->{data_type}]}\n",
         ),
       };
@@ -195,6 +212,10 @@ sub to_graphql {
     $_, $name2type{$_}->{fields}, \%name2pk21, $name2fk21{$_},
     $name2column21{$_}, \%name2type,
   ), keys %name2type;
+  push @ast, map _type2searchinput(
+    $_, $name2column2rawtype{$_}, \%name2pk21, $name2fk21{$_},
+    $name2column21{$_}, \%name2type,
+  ), keys %name2type;
   push @ast, {
     kind => 'type',
     name => 'Query',
@@ -220,6 +241,23 @@ sub to_graphql {
             )
           ];
         };
+        $root_value{$input_search_name} = sub {
+          my ($args, $context, $info) = @_;
+          my @subfieldrels = grep $name2rel21{$name}->{$_},
+            map $_->{name}, grep $_->{kind} eq 'field', map @{$_->{selections}},
+            grep $_->{kind} eq 'field', @{$info->{field_nodes}};
+          DEBUG and _debug('DBIC.root_value', @subfieldrels);
+          [
+            $dbic_schema_cb->()->resultset($name)->search(
+              +{
+                map { ("me.$_" => $args->{input}{$_}) } keys %{$args->{input}}
+              },
+              {
+                prefetch => \@subfieldrels,
+              },
+            )
+          ];
+        };
         (
           # the PKs query
           $pksearch_name => {
@@ -235,15 +273,11 @@ sub to_graphql {
             },
           },
           $input_search_name => {
-            description => 'list of ORs each of which is list of ANDs',
+            description => 'input to search',
             type => _apply_modifier('list', $name),
             args => {
               input => {
-                type => _apply_modifier('non_null', _apply_modifier('list',
-                  _apply_modifier('non_null', _apply_modifier('list',
-                    _apply_modifier('non_null', "${name}Input")
-                  ))
-                ))
+                type => _apply_modifier('non_null', "${name}SearchInput")
               },
             },
           },

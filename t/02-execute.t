@@ -86,4 +86,35 @@ EOF
   );
 };
 
+subtest 'execute search query' => sub {
+  my $doc = <<'EOF';
+{
+  searchBlogTag(input: { name: "tech" }) {
+    id
+    name
+    blog {
+      title
+    }
+  }
+}
+EOF
+  run_test(
+    [
+      $converted->{schema}, $doc, $converted->{root_value},
+      (undef) x 3, $converted->{resolver},
+    ],
+    {
+      data => {
+        searchBlogTag => [
+          {
+            blog => { title => 'Tech' },
+            id => 3,
+            name => 'tech',
+          }
+        ],
+      }
+    }
+  );
+};
+
 done_testing;
