@@ -36,6 +36,14 @@ subtest 'execute pk + deeper query' => sub {
       name
     }
   }
+  photo(id: [4730349774, 4730337840]) {
+    id
+    description
+    photosets {
+      id
+      title
+    }
+  }
 }
 EOF
   run_test(
@@ -56,7 +64,23 @@ EOF
             tags => [ { name => "tech" } ],
             title => "Tech",
           }
-        ]
+        ],
+        photo => [
+          {
+            description => '',
+            id => '4730337840',
+            'photosets' => [
+              { id => '72157624222825789', title => 'Robot Arms' }
+            ],
+          },
+          {
+            description => 'Again - receding hairpieces please!',
+            id => '4730349774',
+            photosets => [
+              { id => '72157624222820921', title => 'Head Museum' }
+            ],
+          },
+        ],
       }
     }
   );
