@@ -149,7 +149,7 @@ sub to_graphql {
   my $dbic_schema = $dbic_schema_cb->();
   my %root_value;
   my @ast = ({kind => 'scalar', name => 'DateTime'});
-  my (%name2type, %name2column21, %name2pk21, %name2fk21);
+  my (%name2type, %name2column21, %name2pk21, %name2fk21, %name2rel21);
   for my $source (map $dbic_schema->source($_), $dbic_schema->sources) {
     my $name = _dbicsource2pretty($source);
     my %fields;
@@ -181,6 +181,7 @@ sub to_graphql {
       $fields{$rel} = +{
         type => $type,
       };
+      $name2rel21{$name}->{$rel} = 1;
     }
     my $spec = +{
       kind => 'type',
@@ -203,8 +204,21 @@ sub to_graphql {
         my $type = $name2type{$name};
         my $pksearch_name = lcfirst $name;
         my $input_search_name = "search$name";
+        # TODO now only one deep, no handle fragments or abstract types
         $root_value{$pksearch_name} = sub {
-          [ $dbic_schema_cb->()->resultset($name)->search(shift) ]
+          my ($args, $context, $info) = @_;
+          my @subfieldrels = grep $name2rel21{$name}->{$_},
+            map $_->{name}, grep $_->{kind} eq 'field', map @{$_->{selections}},
+            grep $_->{kind} eq 'field', @{$info->{field_nodes}};
+          DEBUG and _debug('DBIC.root_value', @subfieldrels);
+          [
+            $dbic_schema_cb->()->resultset($name)->search(
+              +{ map { ("me.$_" => $args->{$_}) } keys %$args },
+              {
+                prefetch => \@subfieldrels,
+              },
+            )
+          ];
         };
         (
           # the PKs query
