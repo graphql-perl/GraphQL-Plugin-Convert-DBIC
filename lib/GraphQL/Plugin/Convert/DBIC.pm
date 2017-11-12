@@ -396,8 +396,73 @@ These L<GraphQL::Type::Object> types will be generated:
     article(id: [Int!]!): [Blog]
   }
 
-The C<Mutation> type is similar: one C<create/update/delete(type)> per
-"real" type.
+=head2 Generated Input Types
+
+Different input types are needed for each of CRUD (Create, Read, Update,
+Delete).
+
+The create one needs to have non-null fields be non-null, for idiomatic
+GraphQL-level error-catching. The read one needs all fields nullable,
+since this will be how searches are implemented, allowing fields to be
+left un-searched-for. Both need to omit primary key fields. The read
+one also needs to omit foreign key fields, since the idiomatic GraphQL
+way for this is to request the other object, with this as a field on it,
+then request any required fields of this.
+
+Meanwhile, the update and delete ones need to include the primary key
+fields, to indicate what to mutate, and also all non-primary key fields
+as nullable, which for update will mean leaving them unchanged, and for
+delete is to be ignored.
+
+Therefore, for the above, these input types (and an updated Query,
+and Mutation) are created:
+
+  input BlogCreateInput {
+    title: String!
+    language: String
+  }
+
+  input BlogSearchInput {
+    title: String
+    language: String
+  }
+
+  input BlogMutateInput {
+    id: Int!
+    title: String
+    language: String
+  }
+
+  input ArticleCreateInput {
+    blog_id: Int!
+    title: String!
+    content: String
+  }
+
+  input ArticleSearchInput {
+    title: String
+    content: String
+  }
+
+  input ArticleMutateInput {
+    id: Int!
+    title: String!
+    language: String
+  }
+
+  type Mutation {
+    createBlog(input: [BlogCreateInput!]!): [Blog]
+    createArticle(input: [ArticleCreateInput!]!): [Article]
+    deleteBlog(input: [BlogMutateInput!]!): [Boolean]
+    deleteArticle(input: [ArticleMutateInput!]!): [Boolean]
+    updateBlog(input: [BlogMutateInput!]!): [Blog]
+    updateArticle(input: [ArticleMutateInput!]!): [Article]
+  }
+
+  extends type Query {
+    searchBlog(input: BlogSearchInput!): [Blog]
+    searchArticle(input: ArticleSearchInput!): [Article]
+  }
 
 =head1 ARGUMENTS
 
