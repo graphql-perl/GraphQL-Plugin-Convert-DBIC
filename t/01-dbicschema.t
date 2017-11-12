@@ -30,7 +30,7 @@ type Blog {
   title: String!
 }
 
-input BlogInput {
+input BlogCreateInput {
   content: String!
   created_time: String!
   location: String
@@ -54,7 +54,7 @@ type BlogTag {
   name: String!
 }
 
-input BlogTagInput {
+input BlogTagCreateInput {
   blog_id: Int!
   name: String!
 }
@@ -66,18 +66,18 @@ input BlogTagSearchInput {
 scalar DateTime
 
 type Mutation {
-  createBlog(input: BlogInput!): Blog
-  createBlogTag(input: BlogTagInput!): BlogTag
-  createPhoto(input: PhotoInput!): Photo
-  createPhotoset(input: PhotosetInput!): Photoset
+  createBlog(input: BlogCreateInput!): Blog
+  createBlogTag(input: BlogTagCreateInput!): BlogTag
+  createPhoto(input: PhotoCreateInput!): Photo
+  createPhotoset(input: PhotosetCreateInput!): Photoset
   deleteBlog(id: Int!): Boolean
   deleteBlogTag(id: Int!): Boolean
   deletePhoto(id: String!): Boolean
   deletePhotoset(id: String!): Boolean
-  updateBlog(id: Int!, input: BlogInput!): Blog
-  updateBlogTag(id: Int!, input: BlogTagInput!): BlogTag
-  updatePhoto(id: String!, input: PhotoInput!): Photo
-  updatePhotoset(id: String!, input: PhotosetInput!): Photoset
+  updateBlog(id: Int!, input: BlogCreateInput!): Blog
+  updateBlogTag(id: Int!, input: BlogTagCreateInput!): BlogTag
+  updatePhoto(id: String!, input: PhotoCreateInput!): Photo
+  updatePhotoset(id: String!, input: PhotosetCreateInput!): Photoset
 }
 
 type Photo {
@@ -104,7 +104,7 @@ type Photo {
   thumbnail: String
 }
 
-input PhotoInput {
+input PhotoCreateInput {
   country: String
   description: String
   idx: Int
@@ -167,7 +167,7 @@ type Photoset {
   visibility_can_see_set: Int
 }
 
-input PhotosetInput {
+input PhotosetCreateInput {
   can_comment: Int
   count_comments: Int
   count_views: Int

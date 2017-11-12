@@ -90,11 +90,11 @@ sub _apply_modifier {
   [ $modifier, { type => $typespec } ];
 }
 
-sub _type2input {
+sub _type2createinput {
   my ($name, $fields, $name2pk21, $fk21, $column21, $name2type) = @_;
   +{
     kind => 'input',
-    name => "${name}Input",
+    name => "${name}CreateInput",
     fields => {
       (map { ($_ => $fields->{$_}) }
         grep !$name2pk21->{$name}{$_} && !$fk21->{$_}, keys %$column21),
@@ -208,7 +208,7 @@ sub to_graphql {
     $name2type{$name} = $spec;
     push @ast, $spec;
   }
-  push @ast, map _type2input(
+  push @ast, map _type2createinput(
     $_, $name2type{$_}->{fields}, \%name2pk21, $name2fk21{$_},
     $name2column21{$_}, \%name2type,
   ), keys %name2type;
@@ -296,13 +296,13 @@ sub to_graphql {
           "create$name" => {
             type => $name,
             args => {
-              input => { type => _apply_modifier('non_null', "${name}Input") },
+              input => { type => _apply_modifier('non_null', "${name}CreateInput") },
             },
           },
           "update$name" => {
             type => $name,
             args => {
-              input => { type => _apply_modifier('non_null', "${name}Input") },
+              input => { type => _apply_modifier('non_null', "${name}CreateInput") },
               _make_pk_fields($name, $name2pk21{$name}, \%name2type),
             },
           },
