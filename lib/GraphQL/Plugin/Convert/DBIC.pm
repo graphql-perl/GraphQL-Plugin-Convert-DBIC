@@ -356,8 +356,45 @@ This module implements the L<GraphQL::Plugin::Convert> API to convert
 a L<DBIx::Class::Schema> to L<GraphQL::Schema> etc.
 
 Its C<Query> type represents a guess at what fields are suitable, based
-on providing a lookup for each type (a L<DBIx::Class::ResultSource>)
-by each of its columns.
+on providing a lookup for each type (a L<DBIx::Class::ResultSource>).
+
+=head2 Example
+
+Consider this minimal data model:
+
+  blog:
+    id # primary key
+    articles # has_many
+    title # non null
+    language # nullable
+  article:
+    id # primary key
+    blog # foreign key to Blog
+    title # non null
+    content # nullable
+
+=head2 Generated Output Types
+
+These L<GraphQL::Type::Object> types will be generated:
+
+  type Blog {
+    id: Int!
+    articles: [Article]
+    title: String!
+    language: String
+  }
+
+  type Article {
+    id: Int!
+    blog: Blog
+    title: String!
+    content: String
+  }
+
+  type Query {
+    blog(id: [Int!]!): [Blog]
+    article(id: [Int!]!): [Blog]
+  }
 
 The C<Mutation> type is similar: one C<create/update/delete(type)> per
 "real" type.

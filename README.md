@@ -25,8 +25,45 @@ This module implements the [GraphQL::Plugin::Convert](https://metacpan.org/pod/G
 a [DBIx::Class::Schema](https://metacpan.org/pod/DBIx::Class::Schema) to [GraphQL::Schema](https://metacpan.org/pod/GraphQL::Schema) etc.
 
 Its `Query` type represents a guess at what fields are suitable, based
-on providing a lookup for each type (a [DBIx::Class::ResultSource](https://metacpan.org/pod/DBIx::Class::ResultSource))
-by each of its columns.
+on providing a lookup for each type (a [DBIx::Class::ResultSource](https://metacpan.org/pod/DBIx::Class::ResultSource)).
+
+## Example
+
+Consider this minimal data model:
+
+    blog:
+      id # primary key
+      articles # has_many
+      title # non null
+      language # nullable
+    article:
+      id # primary key
+      blog # foreign key to Blog
+      title # non null
+      content # nullable
+
+## Generated Output Types
+
+These [GraphQL::Type::Object](https://metacpan.org/pod/GraphQL::Type::Object) types will be generated:
+
+    type Blog {
+      id: Int!
+      articles: [Article]
+      title: String!
+      language: String
+    }
+
+    type Article {
+      id: Int!
+      blog: Blog
+      title: String!
+      content: String
+    }
+
+    type Query {
+      blog(id: [Int!]!): [Blog]
+      article(id: [Int!]!): [Blog]
+    }
 
 The `Mutation` type is similar: one `create/update/delete(type)` per
 "real" type.
