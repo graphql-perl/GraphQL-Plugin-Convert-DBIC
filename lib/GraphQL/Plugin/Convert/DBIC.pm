@@ -115,6 +115,20 @@ sub _type2searchinput {
   };
 }
 
+sub _type2mutateinput {
+  my ($name, $column2rawtype, $fields, $name2pk21, $column21) = @_;
+  +{
+    kind => 'input',
+    name => "${name}MutateInput",
+    fields => {
+      (map { ($_ => { type => $column2rawtype->{$_} }) }
+        grep !$name2pk21->{$name}{$_}, keys %$column21),
+      (map { ($_ => $fields->{$_}) }
+        grep $name2pk21->{$name}{$_}, keys %$column21),
+    },
+  };
+}
+
 sub _make_fk_fields {
   my ($name, $fk21, $name2type, $name2pk21) = @_;
   my $type = $name2type->{$name};
@@ -128,14 +142,6 @@ sub _make_fk_fields {
           })
         } keys %{ $name2pk21->{$field_type} }
   } keys %$fk21);
-}
-
-sub _make_pk_fields {
-  my ($name, $pk21, $name2type) = @_;
-  my $type = $name2type->{$name};
-  (map {
-    $_ => { type => $type->{fields}{$_}{type} }
-  } keys %$pk21),
 }
 
 sub field_resolver {
@@ -215,6 +221,10 @@ sub to_graphql {
   push @ast, map _type2searchinput(
     $_, $name2column2rawtype{$_}, \%name2pk21, $name2fk21{$_},
     $name2column21{$_}, \%name2type,
+  ), keys %name2type;
+  push @ast, map _type2mutateinput(
+    $_, $name2column2rawtype{$_}, $name2type{$_}->{fields}, \%name2pk21,
+    $name2column21{$_},
   ), keys %name2type;
   push @ast, {
     kind => 'type',
@@ -302,14 +312,13 @@ sub to_graphql {
           "update$name" => {
             type => $name,
             args => {
-              input => { type => _apply_modifier('non_null', "${name}CreateInput") },
-              _make_pk_fields($name, $name2pk21{$name}, \%name2type),
+              input => { type => _apply_modifier('non_null', "${name}MutateInput") },
             },
           },
           "delete$name" => {
             type => 'Boolean',
             args => {
-              _make_pk_fields($name, $name2pk21{$name}, \%name2type),
+              input => { type => _apply_modifier('non_null', "${name}MutateInput") },
             },
           },
         )

@@ -39,6 +39,16 @@ input BlogCreateInput {
   title: String!
 }
 
+input BlogMutateInput {
+  content: String
+  created_time: String
+  id: Int!
+  location: String
+  subtitle: String
+  timestamp: DateTime
+  title: String
+}
+
 input BlogSearchInput {
   content: String
   created_time: String
@@ -59,6 +69,11 @@ input BlogTagCreateInput {
   name: String!
 }
 
+input BlogTagMutateInput {
+  id: Int!
+  name: String
+}
+
 input BlogTagSearchInput {
   name: String
 }
@@ -70,14 +85,14 @@ type Mutation {
   createBlogTag(input: BlogTagCreateInput!): BlogTag
   createPhoto(input: PhotoCreateInput!): Photo
   createPhotoset(input: PhotosetCreateInput!): Photoset
-  deleteBlog(id: Int!): Boolean
-  deleteBlogTag(id: Int!): Boolean
-  deletePhoto(id: String!): Boolean
-  deletePhotoset(id: String!): Boolean
-  updateBlog(id: Int!, input: BlogCreateInput!): Blog
-  updateBlogTag(id: Int!, input: BlogTagCreateInput!): BlogTag
-  updatePhoto(id: String!, input: PhotoCreateInput!): Photo
-  updatePhotoset(id: String!, input: PhotosetCreateInput!): Photoset
+  deleteBlog(input: BlogMutateInput!): Boolean
+  deleteBlogTag(input: BlogTagMutateInput!): Boolean
+  deletePhoto(input: PhotoMutateInput!): Boolean
+  deletePhotoset(input: PhotosetMutateInput!): Boolean
+  updateBlog(input: BlogMutateInput!): Blog
+  updateBlogTag(input: BlogTagMutateInput!): BlogTag
+  updatePhoto(input: PhotoMutateInput!): Photo
+  updatePhotoset(input: PhotosetMutateInput!): Photoset
 }
 
 type Photo {
@@ -118,6 +133,27 @@ input PhotoCreateInput {
   original: String
   original_url: String
   photoset_id: String!
+  region: String
+  small: String
+  square: String
+  taken: DateTime
+  thumbnail: String
+}
+
+input PhotoMutateInput {
+  country: String
+  description: String
+  id: String!
+  idx: Int
+  is_glen: String
+  isprimary: String
+  large: String
+  lat: String
+  locality: String
+  lon: String
+  medium: String
+  original: String
+  original_url: String
   region: String
   small: String
   square: String
@@ -182,6 +218,25 @@ input PhotosetCreateInput {
   server: String!
   timestamp: DateTime!
   title: String!
+  videos: Int
+  visibility_can_see_set: Int
+}
+
+input PhotosetMutateInput {
+  can_comment: Int
+  count_comments: Int
+  count_views: Int
+  date_create: Int
+  date_update: Int
+  description: String
+  farm: Int
+  id: String!
+  idx: Int
+  needs_interstitial: Int
+  secret: String
+  server: String
+  timestamp: DateTime
+  title: String
   videos: Int
   visibility_can_see_set: Int
 }
