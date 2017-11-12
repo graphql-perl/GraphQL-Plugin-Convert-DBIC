@@ -81,18 +81,18 @@ input BlogTagSearchInput {
 scalar DateTime
 
 type Mutation {
-  createBlog(input: BlogCreateInput!): Blog
-  createBlogTag(input: BlogTagCreateInput!): BlogTag
-  createPhoto(input: PhotoCreateInput!): Photo
-  createPhotoset(input: PhotosetCreateInput!): Photoset
-  deleteBlog(input: BlogMutateInput!): Boolean
-  deleteBlogTag(input: BlogTagMutateInput!): Boolean
-  deletePhoto(input: PhotoMutateInput!): Boolean
-  deletePhotoset(input: PhotosetMutateInput!): Boolean
-  updateBlog(input: BlogMutateInput!): Blog
-  updateBlogTag(input: BlogTagMutateInput!): BlogTag
-  updatePhoto(input: PhotoMutateInput!): Photo
-  updatePhotoset(input: PhotosetMutateInput!): Photoset
+  createBlog(input: [BlogCreateInput!]!): [Blog]
+  createBlogTag(input: [BlogTagCreateInput!]!): [BlogTag]
+  createPhoto(input: [PhotoCreateInput!]!): [Photo]
+  createPhotoset(input: [PhotosetCreateInput!]!): [Photoset]
+  deleteBlog(input: [BlogMutateInput!]!): [Boolean]
+  deleteBlogTag(input: [BlogTagMutateInput!]!): [Boolean]
+  deletePhoto(input: [PhotoMutateInput!]!): [Boolean]
+  deletePhotoset(input: [PhotosetMutateInput!]!): [Boolean]
+  updateBlog(input: [BlogMutateInput!]!): [Blog]
+  updateBlogTag(input: [BlogTagMutateInput!]!): [BlogTag]
+  updatePhoto(input: [PhotoMutateInput!]!): [Photo]
+  updatePhotoset(input: [PhotosetMutateInput!]!): [Photoset]
 }
 
 type Photo {

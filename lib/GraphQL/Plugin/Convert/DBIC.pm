@@ -304,21 +304,33 @@ sub to_graphql {
         my $type = $name2type{$name};
         (
           "create$name" => {
-            type => $name,
+            type => _apply_modifier('list', $name),
             args => {
-              input => { type => _apply_modifier('non_null', "${name}CreateInput") },
+              input => { type => _apply_modifier('non_null',
+                _apply_modifier('list',
+                  _apply_modifier('non_null', "${name}CreateInput")
+                )
+              ) },
             },
           },
           "update$name" => {
-            type => $name,
+            type => _apply_modifier('list', $name),
             args => {
-              input => { type => _apply_modifier('non_null', "${name}MutateInput") },
+              input => { type => _apply_modifier('non_null',
+                _apply_modifier('list',
+                  _apply_modifier('non_null', "${name}MutateInput")
+                )
+              ) },
             },
           },
           "delete$name" => {
-            type => 'Boolean',
+            type => _apply_modifier('list', 'Boolean'),
             args => {
-              input => { type => _apply_modifier('non_null', "${name}MutateInput") },
+              input => { type => _apply_modifier('non_null',
+                _apply_modifier('list',
+                  _apply_modifier('non_null', "${name}MutateInput")
+                )
+              ) },
             },
           },
         )
