@@ -59,13 +59,13 @@ input BlogSearchInput {
 }
 
 type BlogTag {
-  blog: Blog
+  blog: Blog!
   id: Int!
   name: String!
 }
 
 input BlogTagCreateInput {
-  blog_id: Int!
+  blog: BlogMutateInput!
   name: String!
 }
 
@@ -132,7 +132,7 @@ input PhotoCreateInput {
   medium: String
   original: String
   original_url: String
-  photoset_id: String!
+  photoset: PhotosetMutateInput
   region: String
   small: String
   square: String
@@ -213,7 +213,7 @@ input PhotosetCreateInput {
   farm: Int!
   idx: Int!
   needs_interstitial: Int
-  photo_id: String!
+  primary_photo: PhotoMutateInput
   secret: String!
   server: String!
   timestamp: DateTime!

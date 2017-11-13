@@ -90,6 +90,13 @@ sub _apply_modifier {
   [ $modifier, { type => $typespec } ];
 }
 
+sub _remove_modifiers {
+  my ($typespec) = @_;
+  return $typespec->{type} if ref $typespec eq 'HASH';
+  return $typespec if ref $typespec ne 'ARRAY';
+  _remove_modifiers($typespec->[1]);
+}
+
 sub _type2createinput {
   my ($name, $fields, $name2pk21, $fk21, $column21, $name2type) = @_;
   +{
@@ -134,13 +141,14 @@ sub _make_fk_fields {
   my $type = $name2type->{$name};
   (map {
     my $field_type = $type->{fields}{$_}{type};
-    $TYPE2SCALAR{$field_type}
-      ? ($_ => { type => $field_type })
-      : map {
-          (lcfirst "${field_type}_${_}" => {
-            type => $name2type->{$field_type}{fields}{$_}{type}
-          })
-        } keys %{ $name2pk21->{$field_type} }
+    if (!$TYPE2SCALAR{_remove_modifiers($field_type)}) {
+      my $non_null =
+        ref($field_type) eq 'ARRAY' && $field_type->[0] eq 'non_null';
+      $field_type = _apply_modifier(
+        $non_null && 'non_null', _remove_modifiers($field_type)."MutateInput"
+      );
+    }
+    ($_ => { type => $field_type })
   } keys %$fk21);
 }
 
@@ -199,10 +207,12 @@ sub to_graphql {
       my $type = _dbicsource2pretty($info->{source});
       $rel =~ s/_id$//; # dumb heuristic
       delete $name2column21{$name}->{$rel}; # so it's not a "column" now
+      # if it WAS a column, capture its non-null-ness
+      my $non_null = ref(($fields{$rel} || {})->{type}) eq 'ARRAY';
+      $type = _apply_modifier('non_null', $type) if $non_null;
       $type = _apply_modifier('list', $type) if $info->{attrs}{accessor} eq 'multi';
-      $fields{$rel} = +{
-        type => $type,
-      };
+      $type = _apply_modifier('non_null', $type) if $non_null; # in case list
+      $fields{$rel} = +{ type => $type };
       $name2rel21{$name}->{$rel} = 1;
     }
     my $spec = +{
