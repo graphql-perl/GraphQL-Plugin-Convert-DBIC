@@ -152,7 +152,7 @@ sub field_resolver {
     ? $root_value->{$field_name}
     : $root_value;
   return $property->($args, $context, $info) if ref $property eq 'CODE';
-  return $property
+  return $property // die "DBIC.resolver could not resolve '$field_name'\n"
     if ref $root_value eq 'HASH' or !$root_value->can($field_name);
   return $root_value->$field_name($args, $context, $info)
     if !UNIVERSAL::isa($root_value, 'DBIx::Class::Core');
