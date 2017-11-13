@@ -104,7 +104,7 @@ sub _type2createinput {
 }
 
 sub _type2searchinput {
-  my ($name, $column2rawtype, $name2pk21, $fk21, $column21, $name2type) = @_;
+  my ($name, $column2rawtype, $name2pk21, $column21, $name2type) = @_;
   +{
     kind => 'input',
     name => "${name}SearchInput",
@@ -219,7 +219,7 @@ sub to_graphql {
     $name2column21{$_}, \%name2type,
   ), keys %name2type;
   push @ast, map _type2searchinput(
-    $_, $name2column2rawtype{$_}, \%name2pk21, $name2fk21{$_},
+    $_, $name2column2rawtype{$_}, \%name2pk21,
     $name2column21{$_}, \%name2type,
   ), keys %name2type;
   push @ast, map _type2mutateinput(
