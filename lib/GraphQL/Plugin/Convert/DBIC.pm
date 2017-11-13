@@ -184,13 +184,12 @@ sub to_graphql {
       DEBUG and _debug("schema_dbic2graphql($name.col)", $column, $info);
       my $rawtype = $TYPEMAP{ lc $info->{data_type} };
       $name2column2rawtype{$name}->{$column} = $rawtype;
-      $fields{$column} = +{
-        type => _apply_modifier(
-          !$info->{is_nullable} && 'non_null',
-          $rawtype
-            // die "'$column' unknown data type: @{[lc $info->{data_type}]}\n",
-        ),
-      };
+      my $fulltype = _apply_modifier(
+        !$info->{is_nullable} && 'non_null',
+        $rawtype
+          // die "'$column' unknown data type: @{[lc $info->{data_type}]}\n",
+      );
+      $fields{$column} = +{ type => $fulltype };
       $name2fk21{$name}->{$column} = 1 if $info->{is_foreign_key};
       $name2column21{$name}->{$column} = 1;
     }
