@@ -174,7 +174,7 @@ sub to_graphql {
   my ($class, $dbic_schema_cb) = @_;
   my $dbic_schema = $dbic_schema_cb->();
   my %root_value;
-  my @ast = ({kind => 'scalar', name => 'DateTime'});
+  my @ast;
   my (
     %name2type, %name2column21, %name2pk21, %name2fk21, %name2rel21,
     %name2column2rawtype,

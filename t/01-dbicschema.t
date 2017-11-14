@@ -78,8 +78,6 @@ input BlogTagSearchInput {
   name: String
 }
 
-scalar DateTime
-
 type Mutation {
   createBlog(input: [BlogCreateInput!]!): [Blog]
   createBlogTag(input: [BlogTagCreateInput!]!): [BlogTag]
