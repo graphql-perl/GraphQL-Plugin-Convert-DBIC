@@ -177,6 +177,11 @@ sub _subfieldrels {
     grep $_->{kind} eq 'field', @$field_nodes;
 }
 
+sub _make_update_arg {
+  my ($name, $pk21, $input) = @_;
+  +{ map { $_ => $input->{$_} } grep !$pk21->{$_}, keys %$input };
+}
+
 sub to_graphql {
   my ($class, $dbic_schema_cb) = @_;
   my $dbic_schema = $dbic_schema_cb->();
@@ -328,6 +333,33 @@ sub to_graphql {
             ), @{ $args->{input} }
           ];
         };
+        my $update_name = "update$name";
+        $root_value{$update_name} = sub {
+          my ($args, $context, $info) = @_;
+          my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
+          DEBUG and _debug("DBIC.root_value($update_name)", $args, \@subfieldrels);
+          [
+            map {
+              my $input = $_;
+              my $row = $dbic_schema_cb->()->resultset($name)->find(
+                +{
+                  map {
+                    my $key = $_;
+                    ("me.$key" => $input->{$key})
+                  } keys %{$name2pk21{$name}}
+                },
+                {
+                  prefetch => \@subfieldrels,
+                },
+              );
+              $row
+                ? $row->update(
+                  _make_update_arg($name, $name2pk21{$name}, $input)
+                )->discard_changes
+                : GraphQL::Error->coerce("$name not found");
+            } @{ $args->{input} }
+          ];
+        };
         (
           $create_name => {
             type => _apply_modifier('list', $name),
@@ -339,7 +371,7 @@ sub to_graphql {
               ) },
             },
           },
-          "update$name" => {
+          $update_name => {
             type => _apply_modifier('list', $name),
             args => {
               input => { type => _apply_modifier('non_null',

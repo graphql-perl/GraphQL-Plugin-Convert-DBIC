@@ -151,4 +151,67 @@ EOF
   );
 };
 
+subtest 'execute update mutation' => sub {
+  my $doc = <<'EOF';
+query q {
+  photo(id: ["4730349774", "4656987762"]) {
+    id
+    locality
+  }
+}
+
+mutation m {
+  updatePhoto(input: [
+    { id: "4656987762", locality: "Else2" }
+    { id: "4730349774", locality: "Else1" }
+    { id: "nonexistent", locality: "Else3" }
+  ]) {
+    id
+    locality
+  }
+}
+EOF
+  run_test(
+    [
+      $converted->{schema}, $doc, $converted->{root_value},
+      (undef) x 2, 'q', $converted->{resolver},
+    ],
+    {
+      data => {
+        photo => [
+          { id => '4656987762', locality => 'Chico' },
+          { id => '4730349774', locality => 'Fort Lauderdale' },
+        ],
+      }
+    }
+  );
+  my $expected = [
+    { id => '4656987762', locality => 'Else2' },
+    { id => '4730349774', locality => 'Else1' },
+  ];
+  run_test(
+    [
+      $converted->{schema}, $doc, $converted->{root_value},
+      (undef) x 2, 'm', $converted->{resolver},
+    ],
+    {
+      data => { updatePhoto => [ @$expected, undef ] },
+      errors => [
+        {
+          locations => [ { column => 1, line => 17 } ],
+          message => 'Photo not found',
+          path => [ 'updatePhoto', 2 ],
+        }
+      ],
+    },
+  );
+  run_test(
+    [
+      $converted->{schema}, $doc, $converted->{root_value},
+      (undef) x 2, 'q', $converted->{resolver},
+    ],
+    { data => { photo => $expected } },
+  );
+};
+
 done_testing;
