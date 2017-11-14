@@ -5,6 +5,7 @@ use lib 't/lib-dbicschema';
 use Schema;
 use GraphQL::Execution qw(execute);
 use Data::Dumper;
+use File::Temp qw/ tempfile tempdir /;
 
 use_ok 'GraphQL::Plugin::Convert::DBIC';
 
@@ -22,8 +23,12 @@ sub nice_dump {
 }
 
 my $dbic_class = 'Schema';
+my $dir = tempdir( CLEANUP => 1 );
+my ($tfh, $filename) = tempfile( DIR => $dir );
+print $tfh do { open my $fh, 't/test.db'; binmode $fh; join '', <$fh> };
+close $tfh;
 my $converted = GraphQL::Plugin::Convert::DBIC->to_graphql(
-  sub { $dbic_class->connect('dbi:SQLite:t/test.db') }
+  sub { $dbic_class->connect("dbi:SQLite:$filename") }
 );
 
 subtest 'execute pk + deeper query' => sub {
