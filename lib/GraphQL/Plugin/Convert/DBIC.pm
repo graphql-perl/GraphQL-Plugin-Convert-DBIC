@@ -170,6 +170,13 @@ sub field_resolver {
   return $rs;
 }
 
+sub _subfieldrels {
+  my ($name, $name2rel21, $field_nodes) = @_;
+  grep $name2rel21->{$name}->{$_},
+    map $_->{name}, grep $_->{kind} eq 'field', map @{$_->{selections}},
+    grep $_->{kind} eq 'field', @$field_nodes;
+}
+
 sub to_graphql {
   my ($class, $dbic_schema_cb) = @_;
   my $dbic_schema = $dbic_schema_cb->();
@@ -247,9 +254,7 @@ sub to_graphql {
         # TODO now only one deep, no handle fragments or abstract types
         $root_value{$pksearch_name} = sub {
           my ($args, $context, $info) = @_;
-          my @subfieldrels = grep $name2rel21{$name}->{$_},
-            map $_->{name}, grep $_->{kind} eq 'field', map @{$_->{selections}},
-            grep $_->{kind} eq 'field', @{$info->{field_nodes}};
+          my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
           DEBUG and _debug('DBIC.root_value', @subfieldrels);
           [
             $dbic_schema_cb->()->resultset($name)->search(
@@ -262,9 +267,7 @@ sub to_graphql {
         };
         $root_value{$input_search_name} = sub {
           my ($args, $context, $info) = @_;
-          my @subfieldrels = grep $name2rel21{$name}->{$_},
-            map $_->{name}, grep $_->{kind} eq 'field', map @{$_->{selections}},
-            grep $_->{kind} eq 'field', @{$info->{field_nodes}};
+          my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
           DEBUG and _debug('DBIC.root_value', @subfieldrels);
           [
             $dbic_schema_cb->()->resultset($name)->search(
@@ -314,9 +317,7 @@ sub to_graphql {
         my $create_name = "create$name";
         $root_value{$create_name} = sub {
           my ($args, $context, $info) = @_;
-          my @subfieldrels = grep $name2rel21{$name}->{$_},
-            map $_->{name}, grep $_->{kind} eq 'field', map @{$_->{selections}},
-            grep $_->{kind} eq 'field', @{$info->{field_nodes}};
+          my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
           DEBUG and _debug("DBIC.root_value($create_name)", $args, \@subfieldrels);
           [
             map $dbic_schema_cb->()->resultset($name)->create(
