@@ -122,4 +122,33 @@ EOF
   );
 };
 
+subtest 'execute create mutation' => sub {
+  my $doc = <<'EOF';
+mutation m {
+  createBlogTag(input: [{ blog: { id: 1 }, name: "something" }]) {
+    id
+    name
+    blog {
+      title
+    }
+  }
+}
+EOF
+  run_test(
+    [
+      $converted->{schema}, $doc, $converted->{root_value},
+      (undef) x 3, $converted->{resolver},
+    ],
+    {
+      data => {
+        createBlogTag => [ {
+          blog => { title => 'Hello!' },
+          id => 6,
+          name => 'something',
+        } ],
+      }
+    }
+  );
+};
+
 done_testing;

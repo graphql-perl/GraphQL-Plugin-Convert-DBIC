@@ -311,8 +311,24 @@ sub to_graphql {
       map {
         my $name = $_;
         my $type = $name2type{$name};
+        my $create_name = "create$name";
+        $root_value{$create_name} = sub {
+          my ($args, $context, $info) = @_;
+          my @subfieldrels = grep $name2rel21{$name}->{$_},
+            map $_->{name}, grep $_->{kind} eq 'field', map @{$_->{selections}},
+            grep $_->{kind} eq 'field', @{$info->{field_nodes}};
+          DEBUG and _debug("DBIC.root_value($create_name)", $args, \@subfieldrels);
+          [
+            map $dbic_schema_cb->()->resultset($name)->create(
+              $_,
+              {
+                prefetch => \@subfieldrels,
+              },
+            ), @{ $args->{input} }
+          ];
+        };
         (
-          "create$name" => {
+          "$create_name" => {
             type => _apply_modifier('list', $name),
             args => {
               input => { type => _apply_modifier('non_null',
