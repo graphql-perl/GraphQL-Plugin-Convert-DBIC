@@ -329,7 +329,7 @@ sub to_graphql {
           ];
         };
         (
-          "$create_name" => {
+          $create_name => {
             type => _apply_modifier('list', $name),
             args => {
               input => { type => _apply_modifier('non_null',
