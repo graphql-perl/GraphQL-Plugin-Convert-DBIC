@@ -475,6 +475,10 @@ These L<GraphQL::Type::Object> types will be generated:
     article(id: [Int!]!): [Blog]
   }
 
+Note that while the queries take a list, the return order is
+undefined. This also applies to the mutations. If this matters, request
+the primary key fields and use those to sort.
+
 =head2 Generated Input Types
 
 Different input types are needed for each of CRUD (Create, Read, Update,
