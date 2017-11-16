@@ -360,6 +360,27 @@ sub to_graphql {
             } @{ $args->{input} }
           ];
         };
+        my $delete_name = "delete$name";
+        $root_value{$delete_name} = sub {
+          my ($args, $context, $info) = @_;
+          DEBUG and _debug("DBIC.root_value($delete_name)", $args);
+          [
+            map {
+              my $input = $_;
+              my $row = $dbic_schema_cb->()->resultset($name)->find(
+                +{
+                  map {
+                    my $key = $_;
+                    ("me.$key" => $input->{$key})
+                  } keys %{$name2pk21{$name}}
+                },
+              );
+              $row
+                ? $row->delete && 1
+                : GraphQL::Error->coerce("$name not found");
+            } @{ $args->{input} }
+          ];
+        };
         (
           $create_name => {
             type => _apply_modifier('list', $name),
@@ -381,7 +402,7 @@ sub to_graphql {
               ) },
             },
           },
-          "delete$name" => {
+          $delete_name => {
             type => _apply_modifier('list', 'Boolean'),
             args => {
               input => { type => _apply_modifier('non_null',

@@ -6,6 +6,7 @@ use Schema;
 use GraphQL::Execution qw(execute);
 use Data::Dumper;
 use File::Temp qw/ tempfile tempdir /;
+use JSON::MaybeXS;
 
 use_ok 'GraphQL::Plugin::Convert::DBIC';
 
@@ -211,6 +212,51 @@ EOF
       (undef) x 2, 'q', $converted->{resolver},
     ],
     { data => { photo => $expected } },
+  );
+};
+
+subtest 'execute delete mutation' => sub {
+  my $doc = <<'EOF';
+query q {
+  blogTag(id: [6]) {
+    id
+    name
+  }
+}
+
+mutation m {
+  deleteBlogTag(input: [ { id: 6 } ])
+}
+EOF
+  run_test(
+    [
+      $converted->{schema}, $doc, $converted->{root_value},
+      (undef) x 2, 'q', $converted->{resolver},
+    ],
+    {
+      data => {
+        blogTag => [ {
+          id => 6,
+          name => 'something',
+        } ],
+      }
+    }
+  );
+  run_test(
+    [
+      $converted->{schema}, $doc, $converted->{root_value},
+      (undef) x 2, 'm', $converted->{resolver},
+    ],
+    {
+      data => { deleteBlogTag => [ JSON->true ] },
+    },
+  );
+  run_test(
+    [
+      $converted->{schema}, $doc, $converted->{root_value},
+      (undef) x 2, 'q', $converted->{resolver},
+    ],
+    { data => { blogTag => [] } },
   );
 };
 
