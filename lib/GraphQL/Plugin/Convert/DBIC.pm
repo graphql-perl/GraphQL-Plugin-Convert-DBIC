@@ -69,8 +69,11 @@ my %TYPEMAP = (
   interval_minute_to_second => 'Int',
   # not DBI SQL_* types
   int => 'Int',
+  # mysql
   text => 'String',
   tinytext => 'String',
+  mediumtext => 'String',
+  longtext => 'String',
 );
 my %TYPE2SCALAR = map { ($_ => 1) } qw(ID String Int Float Boolean);
 
