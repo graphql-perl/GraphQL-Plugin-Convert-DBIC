@@ -5,7 +5,7 @@ use warnings;
 use GraphQL::Schema;
 use GraphQL::Debug qw(_debug);
 
-our $VERSION = "0.03";
+our $VERSION = "0.04";
 use constant DEBUG => $ENV{GRAPHQL_DEBUG};
 
 my %TYPEMAP = (
