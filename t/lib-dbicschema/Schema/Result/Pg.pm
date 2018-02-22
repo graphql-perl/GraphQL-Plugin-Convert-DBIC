@@ -16,7 +16,7 @@ __PACKAGE__->add_columns(
     "enum_column",
     {
         data_type => "enum",
-        extra => { custom_type_name => "custom_type", list => ["foo", "bar"] },
+        extra => { custom_type_name => "custom_type", list => ["foo", "bar", "baz space"] },
         is_nullable => 0,
     },
     "timestamp_with_tz",

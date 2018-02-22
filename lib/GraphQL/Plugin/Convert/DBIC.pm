@@ -85,7 +85,7 @@ my %TYPEMAP = (
     return {
       kind => 'enum',
       name => _dbicsource2pretty($extra->{custom_type_name}),
-      values => { map { $_ => { value => $_ } } @{ $extra->{list} } },
+      values => { map { _trim_name($_) => { value => $_ } } @{ $extra->{list} } },
     }
   },
 );
@@ -96,6 +96,13 @@ sub _dbicsource2pretty {
   $source = eval { $source->source_name } || $source;
   $source =~ s#.*::##;
   join '', map ucfirst, split /_+/, $source;
+}
+
+sub _trim_name {
+  my ($name) = @_;
+  return if !defined $name;
+  $name =~ s#[^a-zA-Z0-9_]+#_#g;
+  $name;
 }
 
 sub _apply_modifier {

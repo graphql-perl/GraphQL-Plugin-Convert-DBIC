@@ -80,6 +80,7 @@ input BlogTagSearchInput {
 
 enum CustomType {
   bar
+  baz_space
   foo
 }
 
