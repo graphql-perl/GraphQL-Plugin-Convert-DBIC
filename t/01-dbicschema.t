@@ -78,7 +78,7 @@ input BlogTagSearchInput {
   name: String
 }
 
-enum Enum_custom_type {
+enum CustomType {
   bar
   foo
 }
@@ -102,27 +102,27 @@ type Mutation {
 }
 
 type Pg {
-  enum_column: Enum_custom_type!
+  enum_column: CustomType!
   id: String!
   timestamp_with_tz: DateTime
   timestamp_without_tz: DateTime!
 }
 
 input PgCreateInput {
-  enum_column: Enum_custom_type!
+  enum_column: CustomType!
   timestamp_with_tz: DateTime
   timestamp_without_tz: DateTime!
 }
 
 input PgMutateInput {
-  enum_column: Enum_custom_type
+  enum_column: CustomType
   id: String!
   timestamp_with_tz: DateTime
   timestamp_without_tz: DateTime
 }
 
 input PgSearchInput {
-  enum_column: Enum_custom_type
+  enum_column: CustomType
   timestamp_with_tz: DateTime
   timestamp_without_tz: DateTime
 }

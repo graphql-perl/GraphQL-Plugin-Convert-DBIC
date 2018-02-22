@@ -84,7 +84,7 @@ my %TYPEMAP = (
 
     return {
       kind => 'enum',
-      name => "Enum_$extra->{custom_type_name}",
+      name => _dbicsource2pretty($extra->{custom_type_name}),
       values => { map { $_ => { value => $_ } } @{ $extra->{list} } },
     }
   },
@@ -93,7 +93,7 @@ my %TYPE2SCALAR = map { ($_ => 1) } qw(ID String Int Float Boolean);
 
 sub _dbicsource2pretty {
   my ($source) = @_;
-  $source = $source->source_name || $source;
+  $source = eval { $source->source_name } || $source;
   $source =~ s#.*::##;
   join '', map ucfirst, split /_+/, $source;
 }
