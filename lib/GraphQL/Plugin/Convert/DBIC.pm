@@ -227,13 +227,11 @@ sub to_graphql {
       my $info = $columns_info->{$column};
       DEBUG and _debug("schema_dbic2graphql($name.col)", $column, $info);
       my $rawtype = $TYPEMAP{ lc $info->{data_type} };
-      
       if ( 'CODE' eq ref $rawtype ) {
         my $col_spec = $rawtype->($info);
         push @ast, $col_spec;
         $rawtype = $col_spec->{name};
       }
-      
       $name2column2rawtype{$name}->{$column} = $rawtype;
       my $fulltype = _apply_modifier(
         !$info->{is_nullable} && 'non_null',
