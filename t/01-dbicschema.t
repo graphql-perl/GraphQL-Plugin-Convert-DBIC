@@ -78,19 +78,53 @@ input BlogTagSearchInput {
   name: String
 }
 
+enum Enum_custom_type {
+  bar
+  foo
+}
+
 type Mutation {
   createBlog(input: [BlogCreateInput!]!): [Blog]
   createBlogTag(input: [BlogTagCreateInput!]!): [BlogTag]
+  createPg(input: [PgCreateInput!]!): [Pg]
   createPhoto(input: [PhotoCreateInput!]!): [Photo]
   createPhotoset(input: [PhotosetCreateInput!]!): [Photoset]
   deleteBlog(input: [BlogMutateInput!]!): [Boolean]
   deleteBlogTag(input: [BlogTagMutateInput!]!): [Boolean]
+  deletePg(input: [PgMutateInput!]!): [Boolean]
   deletePhoto(input: [PhotoMutateInput!]!): [Boolean]
   deletePhotoset(input: [PhotosetMutateInput!]!): [Boolean]
   updateBlog(input: [BlogMutateInput!]!): [Blog]
   updateBlogTag(input: [BlogTagMutateInput!]!): [BlogTag]
+  updatePg(input: [PgMutateInput!]!): [Pg]
   updatePhoto(input: [PhotoMutateInput!]!): [Photo]
   updatePhotoset(input: [PhotosetMutateInput!]!): [Photoset]
+}
+
+type Pg {
+  enum_column: Enum_custom_type!
+  id: String!
+  timestamp_with_tz: DateTime
+  timestamp_without_tz: DateTime!
+}
+
+input PgCreateInput {
+  enum_column: Enum_custom_type!
+  timestamp_with_tz: DateTime
+  timestamp_without_tz: DateTime!
+}
+
+input PgMutateInput {
+  enum_column: Enum_custom_type
+  id: String!
+  timestamp_with_tz: DateTime
+  timestamp_without_tz: DateTime
+}
+
+input PgSearchInput {
+  enum_column: Enum_custom_type
+  timestamp_with_tz: DateTime
+  timestamp_without_tz: DateTime
 }
 
 type Photo {
@@ -260,12 +294,15 @@ input PhotosetSearchInput {
 type Query {
   blog(id: [Int!]!): [Blog]
   blogTag(id: [Int!]!): [BlogTag]
+  pg(id: [String!]!): [Pg]
   photo(id: [String!]!): [Photo]
   photoset(id: [String!]!): [Photoset]
   # input to search
   searchBlog(input: BlogSearchInput!): [Blog]
   # input to search
   searchBlogTag(input: BlogTagSearchInput!): [BlogTag]
+  # input to search
+  searchPg(input: PgSearchInput!): [Pg]
   # input to search
   searchPhoto(input: PhotoSearchInput!): [Photo]
   # input to search

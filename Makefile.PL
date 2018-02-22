@@ -1,6 +1,7 @@
 use 5.008001;
 use strict;
 use warnings;
+use Config;
 use ExtUtils::MakeMaker;
 
 WriteMakefile(
@@ -56,6 +57,6 @@ sub MY::postamble {
 pure_all :: README.md
 
 README.md : lib/GraphQL/Plugin/Convert/DBIC.pm
-\tpod2markdown \$< >\$\@
+\t$Config{scriptdir}/pod2markdown \$< >\$\@
 EOF
 }
