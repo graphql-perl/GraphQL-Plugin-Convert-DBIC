@@ -23,6 +23,12 @@ __PACKAGE__->add_columns(
     { data_type => "timestamp with time zone", is_nullable => 1 },
     "timestamp_without_tz",
     { data_type => "timestamp without time zone", is_nullable => 0 },
+    "another_enum_column",
+    {
+        data_type => "enum",
+        extra => { custom_type_name => "custom_type", list => ["foo", "bar", "baz space"] },
+        is_nullable => 0,
+    },
 );
 __PACKAGE__->set_primary_key("id");
 

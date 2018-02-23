@@ -213,7 +213,7 @@ sub to_graphql {
   my @ast;
   my (
     %name2type, %name2column21, %name2pk21, %name2fk21, %name2rel21,
-    %name2column2rawtype,
+    %name2column2rawtype, %seentype,
   );
   for my $source (map $dbic_schema->source($_), $dbic_schema->sources) {
     my $name = _dbicsource2pretty($source);
@@ -229,8 +229,9 @@ sub to_graphql {
       my $rawtype = $TYPEMAP{ lc $info->{data_type} };
       if ( 'CODE' eq ref $rawtype ) {
         my $col_spec = $rawtype->($info);
-        push @ast, $col_spec;
+        push @ast, $col_spec unless $seentype{$col_spec->{name}};
         $rawtype = $col_spec->{name};
+        $seentype{$col_spec->{name}} = 1;
       }
       $name2column2rawtype{$name}->{$column} = $rawtype;
       my $fulltype = _apply_modifier(
