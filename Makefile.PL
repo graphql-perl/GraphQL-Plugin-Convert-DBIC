@@ -18,7 +18,7 @@ WriteMakefile(
     'DBIx::Class::Schema' => 0,
     'GraphQL' => '0.21', # DateTime scalar type
     'DBD::SQLite' => 0,
-    'Test::Snapshot' => '0.05',
+    'Test::Snapshot' => '0.06',
   },
   PREREQ_PM => {
     'DBIx::Class::Schema' => 0,
