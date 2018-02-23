@@ -103,6 +103,7 @@ type Mutation {
 }
 
 type Pg {
+  another_enum_column: CustomType!
   enum_column: CustomType!
   id: String!
   timestamp_with_tz: DateTime
@@ -110,12 +111,14 @@ type Pg {
 }
 
 input PgCreateInput {
+  another_enum_column: CustomType!
   enum_column: CustomType!
   timestamp_with_tz: DateTime
   timestamp_without_tz: DateTime!
 }
 
 input PgMutateInput {
+  another_enum_column: CustomType
   enum_column: CustomType
   id: String!
   timestamp_with_tz: DateTime
@@ -123,6 +126,7 @@ input PgMutateInput {
 }
 
 input PgSearchInput {
+  another_enum_column: CustomType
   enum_column: CustomType
   timestamp_with_tz: DateTime
   timestamp_without_tz: DateTime
