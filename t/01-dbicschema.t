@@ -21,6 +21,6 @@ my $sqlt = SQL::Translator->new(
   producer => 'GraphQL',
 );
 $got = $sqlt->translate or die $sqlt->error;
-is_deeply_snapshot $got, 'schemas';
+is_deeply_snapshot $got, 'schema_simple';
 
 done_testing;

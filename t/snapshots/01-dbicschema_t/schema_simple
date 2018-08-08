@@ -1,27 +1,7 @@
-'type BlogTags {
-  blog: Blogs!
-  id: Int!
-  name: String!
-}
-
-input BlogTagsCreateInput {
-  blog: BlogsMutateInput!
-  name: String!
-}
-
-input BlogTagsMutateInput {
-  id: Int!
-  name: String
-}
-
-input BlogTagsSearchInput {
-  name: String
-}
-
-type Blogs {
+'type Blog {
+  blog_tags: [BlogTag]
   content: String!
   created_time: String!
-  get_blog_tags: [BlogTags]
   id: Int!
   location: String
   subtitle: String
@@ -29,7 +9,7 @@ type Blogs {
   title: String!
 }
 
-input BlogsCreateInput {
+input BlogCreateInput {
   content: String!
   created_time: String!
   location: String
@@ -38,7 +18,7 @@ input BlogsCreateInput {
   title: String!
 }
 
-input BlogsMutateInput {
+input BlogMutateInput {
   content: String
   created_time: String
   id: Int!
@@ -48,13 +28,33 @@ input BlogsMutateInput {
   title: String
 }
 
-input BlogsSearchInput {
+input BlogSearchInput {
   content: String
   created_time: String
   location: String
   subtitle: String
   timestamp: DateTime
   title: String
+}
+
+type BlogTag {
+  blog: Blog!
+  id: Int!
+  name: String!
+}
+
+input BlogTagCreateInput {
+  blog: BlogMutateInput!
+  name: String!
+}
+
+input BlogTagMutateInput {
+  id: Int!
+  name: String
+}
+
+input BlogTagSearchInput {
+  name: String
 }
 
 enum CustomType {
@@ -64,21 +64,21 @@ enum CustomType {
 }
 
 type Mutation {
-  createBlogTags(input: [BlogTagsCreateInput!]!): [BlogTags]
-  createBlogs(input: [BlogsCreateInput!]!): [Blogs]
+  createBlog(input: [BlogCreateInput!]!): [Blog]
+  createBlogTag(input: [BlogTagCreateInput!]!): [BlogTag]
   createPg(input: [PgCreateInput!]!): [Pg]
-  createPhotos(input: [PhotosCreateInput!]!): [Photos]
-  createPhotosets(input: [PhotosetsCreateInput!]!): [Photosets]
-  deleteBlogTags(input: [BlogTagsMutateInput!]!): [Boolean]
-  deleteBlogs(input: [BlogsMutateInput!]!): [Boolean]
+  createPhoto(input: [PhotoCreateInput!]!): [Photo]
+  createPhotoset(input: [PhotosetCreateInput!]!): [Photoset]
+  deleteBlog(input: [BlogMutateInput!]!): [Boolean]
+  deleteBlogTag(input: [BlogTagMutateInput!]!): [Boolean]
   deletePg(input: [PgMutateInput!]!): [Boolean]
-  deletePhotos(input: [PhotosMutateInput!]!): [Boolean]
-  deletePhotosets(input: [PhotosetsMutateInput!]!): [Boolean]
-  updateBlogTags(input: [BlogTagsMutateInput!]!): [BlogTags]
-  updateBlogs(input: [BlogsMutateInput!]!): [Blogs]
+  deletePhoto(input: [PhotoMutateInput!]!): [Boolean]
+  deletePhotoset(input: [PhotosetMutateInput!]!): [Boolean]
+  updateBlog(input: [BlogMutateInput!]!): [Blog]
+  updateBlogTag(input: [BlogTagMutateInput!]!): [BlogTag]
   updatePg(input: [PgMutateInput!]!): [Pg]
-  updatePhotos(input: [PhotosMutateInput!]!): [Photos]
-  updatePhotosets(input: [PhotosetsMutateInput!]!): [Photosets]
+  updatePhoto(input: [PhotoMutateInput!]!): [Photo]
+  updatePhotoset(input: [PhotosetMutateInput!]!): [Photoset]
 }
 
 type Pg {
@@ -111,51 +111,7 @@ input PgSearchInput {
   timestamp_without_tz: DateTime
 }
 
-type Photos {
-  country: String
-  description: String
-  get_photosets: [Photosets]
-  id: String!
-  idx: Int
-  is_glen: String
-  isprimary: String
-  large: String
-  lat: String
-  locality: String
-  lon: String
-  medium: String
-  original: String
-  original_url: String
-  photoset: Photosets
-  region: String
-  small: String
-  square: String
-  taken: DateTime
-  thumbnail: String
-}
-
-input PhotosCreateInput {
-  country: String
-  description: String
-  idx: Int
-  is_glen: String
-  isprimary: String
-  large: String
-  lat: String
-  locality: String
-  lon: String
-  medium: String
-  original: String
-  original_url: String
-  photoset: PhotosetsMutateInput
-  region: String
-  small: String
-  square: String
-  taken: DateTime
-  thumbnail: String
-}
-
-input PhotosMutateInput {
+type Photo {
   country: String
   description: String
   id: String!
@@ -169,6 +125,8 @@ input PhotosMutateInput {
   medium: String
   original: String
   original_url: String
+  photoset: Photoset
+  photosets: [Photoset]
   region: String
   small: String
   square: String
@@ -176,7 +134,49 @@ input PhotosMutateInput {
   thumbnail: String
 }
 
-input PhotosSearchInput {
+input PhotoCreateInput {
+  country: String
+  description: String
+  idx: Int
+  is_glen: String
+  isprimary: String
+  large: String
+  lat: String
+  locality: String
+  lon: String
+  medium: String
+  original: String
+  original_url: String
+  photoset: PhotosetMutateInput
+  region: String
+  small: String
+  square: String
+  taken: DateTime
+  thumbnail: String
+}
+
+input PhotoMutateInput {
+  country: String
+  description: String
+  id: String!
+  idx: Int
+  is_glen: String
+  isprimary: String
+  large: String
+  lat: String
+  locality: String
+  lon: String
+  medium: String
+  original: String
+  original_url: String
+  region: String
+  small: String
+  square: String
+  taken: DateTime
+  thumbnail: String
+}
+
+input PhotoSearchInput {
   country: String
   description: String
   idx: Int
@@ -196,7 +196,7 @@ input PhotosSearchInput {
   thumbnail: String
 }
 
-type Photosets {
+type Photoset {
   can_comment: Int
   count_comments: Int
   count_views: Int
@@ -204,12 +204,11 @@ type Photosets {
   date_update: Int
   description: String!
   farm: Int!
-  get_photos: [Photos]
   id: String!
   idx: Int!
   needs_interstitial: Int
-  photos: Int
-  primary_photo: Photos
+  photos: [Photo]
+  primary_photo: Photo
   secret: String!
   server: String!
   timestamp: DateTime!
@@ -218,7 +217,7 @@ type Photosets {
   visibility_can_see_set: Int
 }
 
-input PhotosetsCreateInput {
+input PhotosetCreateInput {
   can_comment: Int
   count_comments: Int
   count_views: Int
@@ -228,8 +227,7 @@ input PhotosetsCreateInput {
   farm: Int!
   idx: Int!
   needs_interstitial: Int
-  photos: Int
-  primary_photo: PhotosMutateInput
+  primary_photo: PhotoMutateInput
   secret: String!
   server: String!
   timestamp: DateTime!
@@ -238,7 +236,7 @@ input PhotosetsCreateInput {
   visibility_can_see_set: Int
 }
 
-input PhotosetsMutateInput {
+input PhotosetMutateInput {
   can_comment: Int
   count_comments: Int
   count_views: Int
@@ -249,7 +247,6 @@ input PhotosetsMutateInput {
   id: String!
   idx: Int
   needs_interstitial: Int
-  photos: Int
   secret: String
   server: String
   timestamp: DateTime
@@ -258,7 +255,7 @@ input PhotosetsMutateInput {
   visibility_can_see_set: Int
 }
 
-input PhotosetsSearchInput {
+input PhotosetSearchInput {
   can_comment: Int
   count_comments: Int
   count_views: Int
@@ -268,7 +265,6 @@ input PhotosetsSearchInput {
   farm: Int
   idx: Int
   needs_interstitial: Int
-  photos: Int
   secret: String
   server: String
   timestamp: DateTime
@@ -278,20 +274,20 @@ input PhotosetsSearchInput {
 }
 
 type Query {
-  blogTags(id: [Int!]!): [BlogTags]
-  blogs(id: [Int!]!): [Blogs]
+  blog(id: [Int!]!): [Blog]
+  blogTag(id: [Int!]!): [BlogTag]
   pg(id: [String!]!): [Pg]
-  photos(id: [String!]!): [Photos]
-  photosets(id: [String!]!): [Photosets]
+  photo(id: [String!]!): [Photo]
+  photoset(id: [String!]!): [Photoset]
   # input to search
-  searchBlogTags(input: BlogTagsSearchInput!): [BlogTags]
+  searchBlog(input: BlogSearchInput!): [Blog]
   # input to search
-  searchBlogs(input: BlogsSearchInput!): [Blogs]
+  searchBlogTag(input: BlogTagSearchInput!): [BlogTag]
   # input to search
   searchPg(input: PgSearchInput!): [Pg]
   # input to search
-  searchPhotos(input: PhotosSearchInput!): [Photos]
+  searchPhoto(input: PhotoSearchInput!): [Photo]
   # input to search
-  searchPhotosets(input: PhotosetsSearchInput!): [Photosets]
+  searchPhotoset(input: PhotosetSearchInput!): [Photoset]
 }
 '

@@ -4,6 +4,7 @@ use strict;
 use warnings;
 use GraphQL::Schema;
 use GraphQL::Debug qw(_debug);
+use Lingua::EN::Inflect::Number qw(to_S);
 
 our $VERSION = "0.06";
 use constant DEBUG => $ENV{GRAPHQL_DEBUG};
@@ -115,6 +116,7 @@ sub _dbicsource2pretty {
   my ($source) = @_;
   $source = eval { $source->source_name } || $source;
   $source =~ s#.*::##;
+  $source = to_S $source;
   join '', map ucfirst, split /_+/, $source;
 }
 

@@ -1,8 +1,8 @@
 'type Author {
   age: Int!
-  get_module: [Module]
   id: Int!
   message: String!
+  module: [Module]
   name: String
 }
 
