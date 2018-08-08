@@ -6,7 +6,7 @@ use GraphQL::Schema;
 use GraphQL::Debug qw(_debug);
 use Lingua::EN::Inflect::Number qw(to_S);
 
-our $VERSION = "0.06";
+our $VERSION = "0.07";
 use constant DEBUG => $ENV{GRAPHQL_DEBUG};
 
 my %GRAPHQL_TYPE2SQLS = (
