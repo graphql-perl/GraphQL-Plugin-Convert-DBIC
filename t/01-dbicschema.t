@@ -4,6 +4,7 @@ use File::Spec;
 use Test::Snapshot;
 use lib 't/lib-dbicschema';
 use Schema;
+use SQL::Translator;
 
 use_ok 'GraphQL::Plugin::Convert::DBIC';
 
@@ -13,5 +14,13 @@ my $converted = GraphQL::Plugin::Convert::DBIC->to_graphql(
 );
 my $got = $converted->{schema}->to_doc;
 is_deeply_snapshot $got, 'schema';
+
+my $sqlt = SQL::Translator->new(
+  parser => 'SQL::Translator::Parser::DBIx::Class',
+  parser_args => { dbic_schema => $dbic_class->connect },
+  producer => 'GraphQL',
+);
+$got = $sqlt->translate or die $sqlt->error;
+is_deeply_snapshot $got, 'schemas';
 
 done_testing;

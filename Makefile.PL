@@ -23,6 +23,7 @@ WriteMakefile(
   PREREQ_PM => {
     'DBIx::Class::Schema' => 0,
     'GraphQL' => '0.21', # DateTime scalar type
+    'SQL::Translator' => '0',
   },
   clean => { FILES => 'GraphQL-Plugin-Convert-DBIC-*' },
   META_MERGE => {
