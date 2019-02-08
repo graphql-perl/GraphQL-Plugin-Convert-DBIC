@@ -16,13 +16,12 @@ WriteMakefile(
   TEST_REQUIRES => {
     'Test::More' => '0.98',
     'DBIx::Class::Schema' => 0,
-    'GraphQL' => '0.21', # DateTime scalar type
     'DBD::SQLite' => 0,
     'Test::Snapshot' => '0.05',
   },
   PREREQ_PM => {
     'DBIx::Class::Schema' => 0,
-    'GraphQL' => '0.21', # DateTime scalar type
+    'GraphQL' => '0.32', # new SDL format
     'SQL::Translator' => '0',
     'Lingua::EN::Inflect::Number' => '0',
   },
