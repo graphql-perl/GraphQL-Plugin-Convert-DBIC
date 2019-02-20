@@ -5,6 +5,7 @@ use warnings;
 use GraphQL::Schema;
 use GraphQL::Debug qw(_debug);
 use Lingua::EN::Inflect::Number qw(to_S);
+use Carp qw(confess);
 
 our $VERSION = "0.08";
 use constant DEBUG => $ENV{GRAPHQL_DEBUG};
@@ -114,6 +115,7 @@ my %TYPE2SCALAR = map { ($_ => 1) } qw(ID String Int Float Boolean);
 
 sub _dbicsource2pretty {
   my ($source) = @_;
+  confess "_dbicsource2pretty given undef" if !defined $source;
   $source = eval { $source->source_name } || $source;
   $source =~ s#.*::##;
   $source = to_S $source;
