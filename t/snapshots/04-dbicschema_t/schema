@@ -189,11 +189,7 @@ type Mutation {
 }
 
 type Query {
-  currentDeptEmp: [CurrentDeptEmp]
   department(dept_no: [String!]!): [Department]
-  deptEmp: [DeptEmp]
-  deptEmpLatestDate: [DeptEmpLatestDate]
-  deptManager: [DeptManager]
   employee(emp_no: [Int!]!): [Employee]
   salary(from_date: [DateTime!]!): [Salary]
   "input to search"

@@ -344,7 +344,7 @@ sub to_graphql {
         };
         (
           # the PKs query
-          $pksearch_name => {
+          keys %{ $name2pk21{$name} } ? ($pksearch_name => {
             type => _apply_modifier('list', $name),
             args => {
               map {
@@ -355,7 +355,7 @@ sub to_graphql {
                 }
               } keys %{ $name2pk21{$name} }
             },
-          },
+          }) : (),
           $input_search_name => {
             description => 'input to search',
             type => _apply_modifier('list', $name),
