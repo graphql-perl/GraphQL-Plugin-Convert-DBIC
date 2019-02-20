@@ -12,6 +12,7 @@ t/03-sqlread.t
 t/lib-dbicschema/Schema.pm
 t/lib-dbicschema/Schema/Result/Blog.pm
 t/lib-dbicschema/Schema/Result/BlogTag.pm
+t/lib-dbicschema/Schema/Result/Mysql.pm
 t/lib-dbicschema/Schema/Result/Pg.pm
 t/lib-dbicschema/Schema/Result/Photo.pm
 t/lib-dbicschema/Schema/Result/Photoset.pm

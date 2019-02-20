@@ -102,11 +102,13 @@ my %TYPEMAP = (
     } @{ $GRAPHQL_TYPE2SQLS{$gql_type} }
   } keys %GRAPHQL_TYPE2SQLS),
   enum => sub {
-    my $info = shift;
+    my ($source, $column, $info) = @_;
     my $extra = $info->{extra};
     return {
       kind => 'enum',
-      name => _dbicsource2pretty($extra->{custom_type_name}),
+      name => _dbicsource2pretty(
+        $extra->{custom_type_name} || "${source}_$column"
+      ),
       values => { map { _trim_name($_) => { value => $_ } } @{ $extra->{list} } },
     }
   },
@@ -252,7 +254,7 @@ sub to_graphql {
       DEBUG and _debug("schema_dbic2graphql($name.col)", $column, $info);
       my $rawtype = $TYPEMAP{ lc $info->{data_type} };
       if ( 'CODE' eq ref $rawtype ) {
-        my $col_spec = $rawtype->($info);
+        my $col_spec = $rawtype->($name, $column, $info);
         push @ast, $col_spec unless $seentype{$col_spec->{name}};
         $rawtype = $col_spec->{name};
         $seentype{$col_spec->{name}} = 1;
