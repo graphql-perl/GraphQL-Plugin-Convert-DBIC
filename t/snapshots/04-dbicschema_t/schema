@@ -5,20 +5,6 @@
   to_date: DateTime
 }
 
-input CurrentDeptEmpCreateInput {
-  dept_no: String!
-  emp_no: Int!
-  from_date: DateTime
-  to_date: DateTime
-}
-
-input CurrentDeptEmpMutateInput {
-  dept_no: String
-  emp_no: Int
-  from_date: DateTime
-  to_date: DateTime
-}
-
 input CurrentDeptEmpSearchInput {
   dept_no: String
   emp_no: Int
@@ -62,18 +48,6 @@ input DeptEmpCreateInput {
 
 type DeptEmpLatestDate {
   emp_no: Int!
-  from_date: DateTime
-  to_date: DateTime
-}
-
-input DeptEmpLatestDateCreateInput {
-  emp_no: Int!
-  from_date: DateTime
-  to_date: DateTime
-}
-
-input DeptEmpLatestDateMutateInput {
-  emp_no: Int
   from_date: DateTime
   to_date: DateTime
 }
@@ -162,26 +136,20 @@ input EmployeeSearchInput {
 }
 
 type Mutation {
-  createCurrentDeptEmp(input: [CurrentDeptEmpCreateInput!]!): [CurrentDeptEmp]
   createDepartment(input: [DepartmentCreateInput!]!): [Department]
   createDeptEmp(input: [DeptEmpCreateInput!]!): [DeptEmp]
-  createDeptEmpLatestDate(input: [DeptEmpLatestDateCreateInput!]!): [DeptEmpLatestDate]
   createDeptManager(input: [DeptManagerCreateInput!]!): [DeptManager]
   createEmployee(input: [EmployeeCreateInput!]!): [Employee]
   createSalary(input: [SalaryCreateInput!]!): [Salary]
   createTitle(input: [TitleCreateInput!]!): [Title]
-  deleteCurrentDeptEmp(input: [CurrentDeptEmpMutateInput!]!): [Boolean]
   deleteDepartment(input: [DepartmentMutateInput!]!): [Boolean]
   deleteDeptEmp(input: [DeptEmpMutateInput!]!): [Boolean]
-  deleteDeptEmpLatestDate(input: [DeptEmpLatestDateMutateInput!]!): [Boolean]
   deleteDeptManager(input: [DeptManagerMutateInput!]!): [Boolean]
   deleteEmployee(input: [EmployeeMutateInput!]!): [Boolean]
   deleteSalary(input: [SalaryMutateInput!]!): [Boolean]
   deleteTitle(input: [TitleMutateInput!]!): [Boolean]
-  updateCurrentDeptEmp(input: [CurrentDeptEmpMutateInput!]!): [CurrentDeptEmp]
   updateDepartment(input: [DepartmentMutateInput!]!): [Department]
   updateDeptEmp(input: [DeptEmpMutateInput!]!): [DeptEmp]
-  updateDeptEmpLatestDate(input: [DeptEmpLatestDateMutateInput!]!): [DeptEmpLatestDate]
   updateDeptManager(input: [DeptManagerMutateInput!]!): [DeptManager]
   updateEmployee(input: [EmployeeMutateInput!]!): [Employee]
   updateSalary(input: [SalaryMutateInput!]!): [Salary]

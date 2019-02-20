@@ -239,10 +239,12 @@ sub to_graphql {
   my @ast;
   my (
     %name2type, %name2column21, %name2pk21, %name2fk21, %name2rel21,
-    %name2column2rawtype, %seentype,
+    %name2column2rawtype, %seentype, %name2isview,
   );
   for my $source (map $dbic_schema->source($_), $dbic_schema->sources) {
     my $name = _dbicsource2pretty($source);
+    DEBUG and _debug("schema_dbic2graphql($name)", $source);
+    $name2isview{$name} = 1 if $source->can('view_definition');
     my %fields;
     my $columns_info = $source->columns_info;
     $name2pk21{$name} = +{ map { ($_ => 1) } $source->primary_columns };
@@ -295,7 +297,7 @@ sub to_graphql {
   push @ast, map _type2createinput(
     $_, $name2type{$_}->{fields}, \%name2pk21, $name2fk21{$_},
     $name2column21{$_}, \%name2type,
-  ), keys %name2type;
+  ), grep !$name2isview{$_}, keys %name2type;
   push @ast, map _type2searchinput(
     $_, $name2column2rawtype{$_}, \%name2pk21,
     $name2column21{$_}, \%name2type,
@@ -303,7 +305,7 @@ sub to_graphql {
   push @ast, map _type2mutateinput(
     $_, $name2column2rawtype{$_}, $name2type{$_}->{fields}, \%name2pk21,
     $name2column21{$_},
-  ), keys %name2type;
+  ), grep !$name2isview{$_}, keys %name2type;
   push @ast, {
     kind => 'type',
     name => 'Query',
@@ -470,7 +472,7 @@ sub to_graphql {
             },
           },
         )
-      } keys %name2type
+      } grep !$name2isview{$_}, keys %name2type
     },
   };
   +{
