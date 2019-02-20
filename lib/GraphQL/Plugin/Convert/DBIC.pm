@@ -275,6 +275,7 @@ sub to_graphql {
       my $type = _dbicsource2pretty($info->{source});
       $rel =~ s/_id$//; # dumb heuristic
       delete $name2column21{$name}->{$rel}; # so it's not a "column" now
+      delete $name2pk21{$name}{$rel}; # it's not a PK either
       # if it WAS a column, capture its non-null-ness
       my $non_null = ref(($fields{$rel} || {})->{type}) eq 'ARRAY';
       $type = _apply_modifier('non_null', $type) if $non_null;
