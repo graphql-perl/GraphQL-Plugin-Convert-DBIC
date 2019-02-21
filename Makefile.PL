@@ -18,6 +18,7 @@ WriteMakefile(
     'DBIx::Class::Schema' => 0,
     'DBD::SQLite' => 0,
     'Test::Snapshot' => '0.05',
+    'JSON::MaybeXS' => 0,
   },
   PREREQ_PM => {
     'DBIx::Class::Schema' => 0,
