@@ -42,6 +42,9 @@ my %GRAPHQL_TYPE2SQLS = (
     'tinytext',
     'mediumtext',
     'longtext',
+    # pgsql
+    'cidr',
+    'inet',
   ],
   Int => [
     'bigint',
