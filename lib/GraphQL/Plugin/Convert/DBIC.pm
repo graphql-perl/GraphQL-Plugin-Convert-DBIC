@@ -1,5 +1,4 @@
 package GraphQL::Plugin::Convert::DBIC;
-use 5.008001;
 use strict;
 use warnings;
 use GraphQL::Schema;
