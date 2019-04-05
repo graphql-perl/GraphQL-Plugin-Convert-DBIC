@@ -325,10 +325,9 @@ sub to_graphql {
           my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
           DEBUG and _debug('DBIC.root_value', @subfieldrels);
           $dbic_schema_cb->()->resultset($name)->find(
-          $args,
-          {
-            prefetch => \@subfieldrels,
-          });
+            $args,
+            { prefetch => \@subfieldrels }
+          );
         };
         $root_value{$pksearch_name_plural} = sub {
           my ($args, $context, $info) = @_;

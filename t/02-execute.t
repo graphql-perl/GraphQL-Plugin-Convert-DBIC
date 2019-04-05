@@ -276,7 +276,7 @@ EOF
     ],
     {
       data => {
-        blog => 
+        blog =>
         {
           id => 1,
           title => "Hello!",
