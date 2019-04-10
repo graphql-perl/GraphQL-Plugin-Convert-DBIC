@@ -15,9 +15,7 @@ sub produce {
   my $perl = dbic_produce($dbic_translator);
   eval $perl;
   die "Failed to make DBIx::Class::Schema: $@" if $@;
-  my $converted = GraphQL::Plugin::Convert::DBIC->to_graphql(
-    sub { $dbic_schema_class->connect }
-  );
+  my $converted = GraphQL::Plugin::Convert::DBIC->to_graphql($dbic_schema_class->connect);
   $converted->{schema}->to_doc;
 }
 
