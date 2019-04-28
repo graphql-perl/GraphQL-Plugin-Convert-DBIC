@@ -403,7 +403,6 @@ sub to_graphql {
     fields => {
       map {
         my $name = $_;
-        my $type = $name2type{$name};
         my $create_name = "create$name";
         $root_value{$create_name} = sub {
           my ($args, $context, $info) = @_;
