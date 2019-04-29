@@ -285,6 +285,31 @@ sub _make_input_field {
   };
 }
 
+sub _make_mutation_resolver {
+  my ($dbic_schema, $name, $method, $deref_key, $is_list, $find_first, $args_process, $result_process) = @_;
+  sub {
+    my ($args, $context, $info) = @_;
+    $args = $args->{$deref_key} if $deref_key;
+    $args = [ $args ] if !$is_list; # so can just deal as list below
+    DEBUG and _debug("DBIC.root_value", $args);
+    my $rs = $dbic_schema->resultset($name);
+    my $all_result = [
+      map {
+        my $operand = $rs;
+        $operand = $operand->find($_) if $find_first;
+        my $result = $operand
+          ? $operand->$method($args_process ? $args_process->($_) : $_)
+          : GraphQL::Error->coerce("$name not found");
+        $result = $result_process->($result)
+          if $result_process and ref($result) ne 'GraphQL::Error';
+        $result;
+      } @$args
+    ];
+    $all_result = $all_result->[0] if !$is_list;
+    $all_result
+  };
+}
+
 sub to_graphql {
   my ($class, $dbic_schema) = @_;
   $dbic_schema = $dbic_schema->() if ((ref($dbic_schema)||'') eq 'CODE');
@@ -391,63 +416,17 @@ sub to_graphql {
       map {
         my $name = $_;
         my $create_name = "create$name";
-        $root_value{$create_name} = sub {
-          my ($args, $context, $info) = @_;
-          DEBUG and _debug("DBIC.root_value($create_name)", $args);
-          my $rs = $dbic_schema->resultset($name);
-          [
-            map $rs->create(
-              $_,
-            ), @{ $args->{input} }
-          ];
-        };
+        $root_value{$create_name} = _make_mutation_resolver($dbic_schema, $name, 'create', 'input', 1, 0);
         my $update_name = "update$name";
-        $root_value{$update_name} = sub {
-          my ($args, $context, $info) = @_;
-          my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
-          DEBUG and _debug("DBIC.root_value($update_name)", $args);
-          my $rs = $dbic_schema->resultset($name);
-          [
-            map {
-              my $input = $_;
-              my $row = $rs->find(
-                +{
-                  map {
-                    my $key = $_;
-                    ("me.$key" => $input->{$key})
-                  } keys %{$name2pk21{$name}}
-                },
-              );
-              $row
-                ? $row->update(
-                  _make_update_arg($name, $name2pk21{$name}, $input)
-                )->discard_changes
-                : GraphQL::Error->coerce("$name not found");
-            } @{ $args->{input} }
-          ];
-        };
+        $root_value{$update_name} = _make_mutation_resolver($dbic_schema, $name, 'update', 'input', 1, 1,
+          sub { _make_update_arg($name, $name2pk21{$name}, $_[0]) },
+          sub { ref($_[0]) eq 'GraphQL::Error' ? $_[0] : $_[0]->discard_changes },
+        );
         my $delete_name = "delete$name";
-        $root_value{$delete_name} = sub {
-          my ($args, $context, $info) = @_;
-          DEBUG and _debug("DBIC.root_value($delete_name)", $args);
-          my $rs = $dbic_schema->resultset($name);
-          [
-            map {
-              my $input = $_;
-              my $row = $rs->find(
-                +{
-                  map {
-                    my $key = $_;
-                    ("me.$key" => $input->{$key})
-                  } keys %{$name2pk21{$name}}
-                },
-              );
-              $row
-                ? $row->delete && 1
-                : GraphQL::Error->coerce("$name not found");
-            } @{ $args->{input} }
-          ];
-        };
+        $root_value{$delete_name} = _make_mutation_resolver($dbic_schema, $name, 'delete', 'input', 1, 1,
+          sub { },
+          sub { ref($_[0]) eq 'GraphQL::Error' ? $_[0] : $_[0] && 1 },
+        );
         (
           $create_name => _make_input_field($name, $name, 'create', 1, 1),
           $update_name => _make_input_field($name, $name, 'mutate', 1, 1),
