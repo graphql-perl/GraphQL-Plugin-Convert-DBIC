@@ -234,6 +234,24 @@ sub _make_update_arg {
   +{ map { $_ => $input->{$_} } grep !$pk21->{$_}, keys %$input };
 }
 
+sub _make_query_resolver {
+  my ($name2rel21, $dbic_schema, $method, $deref_key) = @_;
+  sub {
+    my ($args, $content, $info) = @_;
+    my $name = $info->{return_type}->name;
+    my @subfieldrels = _subfieldrels($name, $name2rel21, $info->{field_nodes});
+    $args = $args->{$deref_key} if $deref_key;
+    $args = +{ map { ("me.$_" => $args->{$_}) } keys %$args };
+    DEBUG and _debug('DBIC.root_value', $name, $method, $args, \@subfieldrels);
+    my $result = $dbic_schema->resultset($name)->$method(
+      $args,
+      { prefetch => \@subfieldrels },
+    );
+    $result = [ $result->all ] if $method eq 'search';
+    $result;
+  }
+}
+
 sub to_graphql {
   my ($class, $dbic_schema) = @_;
   $dbic_schema = $dbic_schema->() if ((ref($dbic_schema)||'') eq 'CODE');
@@ -319,43 +337,9 @@ sub to_graphql {
         my $pksearch_name_plural = to_PL($pksearch_name);
         my $input_search_name = "search$name";
         # TODO now only one deep, no handle fragments or abstract types
-        $root_value{$pksearch_name} = sub {
-          my ($args, $content, $info) = @_;
-          my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
-          DEBUG and _debug('DBIC.root_value', @subfieldrels);
-          $dbic_schema->resultset($name)->find(
-            $args,
-            { prefetch => \@subfieldrels }
-          );
-        };
-        $root_value{$pksearch_name_plural} = sub {
-          my ($args, $context, $info) = @_;
-          my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
-          DEBUG and _debug('DBIC.root_value', @subfieldrels);
-          [
-            $dbic_schema->resultset($name)->search(
-              +{ map { ("me.$_" => $args->{$_}) } keys %$args },
-              {
-                prefetch => \@subfieldrels,
-              },
-            )
-          ];
-        };
-        $root_value{$input_search_name} = sub {
-          my ($args, $context, $info) = @_;
-          my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
-          DEBUG and _debug('DBIC.root_value', @subfieldrels);
-          [
-            $dbic_schema->resultset($name)->search(
-              +{
-                map { ("me.$_" => $args->{input}{$_}) } keys %{$args->{input}}
-              },
-              {
-                prefetch => \@subfieldrels,
-              },
-            )
-          ];
-        };
+        $root_value{$pksearch_name} = _make_query_resolver(\%name2rel21, $dbic_schema, 'find');
+        $root_value{$pksearch_name_plural} = _make_query_resolver(\%name2rel21, $dbic_schema, 'search');
+        $root_value{$input_search_name} = _make_query_resolver(\%name2rel21, $dbic_schema, 'search', 'input');
         (
           keys %{ $name2pk21{$name} } ? (
             # the PK (singular) query
