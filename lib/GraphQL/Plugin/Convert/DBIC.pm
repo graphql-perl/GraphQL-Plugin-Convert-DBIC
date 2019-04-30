@@ -393,13 +393,11 @@ sub to_graphql {
         my $create_name = "create$name";
         $root_value{$create_name} = sub {
           my ($args, $context, $info) = @_;
-          my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
-          DEBUG and _debug("DBIC.root_value($create_name)", $args, \@subfieldrels);
+          DEBUG and _debug("DBIC.root_value($create_name)", $args);
           my $rs = $dbic_schema->resultset($name);
           [
             map $rs->create(
               $_,
-              { prefetch => \@subfieldrels },
             ), @{ $args->{input} }
           ];
         };
@@ -407,7 +405,7 @@ sub to_graphql {
         $root_value{$update_name} = sub {
           my ($args, $context, $info) = @_;
           my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
-          DEBUG and _debug("DBIC.root_value($update_name)", $args, \@subfieldrels);
+          DEBUG and _debug("DBIC.root_value($update_name)", $args);
           my $rs = $dbic_schema->resultset($name);
           [
             map {
@@ -418,9 +416,6 @@ sub to_graphql {
                     my $key = $_;
                     ("me.$key" => $input->{$key})
                   } keys %{$name2pk21{$name}}
-                },
-                {
-                  prefetch => \@subfieldrels,
                 },
               );
               $row
