@@ -252,6 +252,24 @@ sub _make_query_resolver {
   }
 }
 
+sub _make_query_pk_field {
+  my ($typename, $type, $name2pk21, $is_list) = @_;
+  my $return_type = $typename;
+  $return_type = _apply_modifier('list', $return_type) if $is_list;
+  +{
+    type => $return_type,
+    args => {
+      map {
+        my $field_type = _apply_modifier('non_null', $type->{fields}{$_}{type});
+        $field_type = _apply_modifier('non_null', _apply_modifier('list',
+          $field_type
+        )) if $is_list;
+        $_ => { type => $field_type }
+      } keys %{ $name2pk21->{$typename} }
+    },
+  };
+}
+
 sub to_graphql {
   my ($class, $dbic_schema) = @_;
   $dbic_schema = $dbic_schema->() if ((ref($dbic_schema)||'') eq 'CODE');
@@ -343,30 +361,9 @@ sub to_graphql {
         (
           keys %{ $name2pk21{$name} } ? (
             # the PK (singular) query
-            $pksearch_name => {
-              type => $name,
-              args => {
-                map {
-                  $_ => {
-                    type =>
-                      _apply_modifier('non_null', $type->{fields}{$_}{type})
-                  }
-                } keys %{ $name2pk21{$name} }
-              },
-            },
+            $pksearch_name => _make_query_pk_field($name, $type, \%name2pk21),
             # the PKs query
-            $pksearch_name_plural => {
-              type => _apply_modifier('list', $name),
-              args => {
-                map {
-                  $_ => {
-                    type => _apply_modifier('non_null', _apply_modifier('list',
-                      _apply_modifier('non_null', $type->{fields}{$_}{type})
-                    ))
-                  }
-                } keys %{ $name2pk21{$name} }
-              },
-            },
+            $pksearch_name_plural => _make_query_pk_field($name, $type, \%name2pk21, 1),
           ) : (),
           $input_search_name => {
             description => 'input to search',
