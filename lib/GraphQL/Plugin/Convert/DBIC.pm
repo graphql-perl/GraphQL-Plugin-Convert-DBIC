@@ -243,7 +243,8 @@ sub _make_query_resolver {
     $args = $args->{$deref_key} if $deref_key;
     $args = +{ map { ("me.$_" => $args->{$_}) } keys %$args };
     DEBUG and _debug('DBIC.root_value', $name, $method, $args, \@subfieldrels);
-    my $result = $dbic_schema->resultset($name)->$method(
+    my $rs = $dbic_schema->resultset($name);
+    my $result = $rs->$method(
       $args,
       { prefetch => \@subfieldrels },
     );
@@ -394,12 +395,11 @@ sub to_graphql {
           my ($args, $context, $info) = @_;
           my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
           DEBUG and _debug("DBIC.root_value($create_name)", $args, \@subfieldrels);
+          my $rs = $dbic_schema->resultset($name);
           [
-            map $dbic_schema->resultset($name)->create(
+            map $rs->create(
               $_,
-              {
-                prefetch => \@subfieldrels,
-              },
+              { prefetch => \@subfieldrels },
             ), @{ $args->{input} }
           ];
         };
@@ -408,10 +408,11 @@ sub to_graphql {
           my ($args, $context, $info) = @_;
           my @subfieldrels = _subfieldrels($name, \%name2rel21, $info->{field_nodes});
           DEBUG and _debug("DBIC.root_value($update_name)", $args, \@subfieldrels);
+          my $rs = $dbic_schema->resultset($name);
           [
             map {
               my $input = $_;
-              my $row = $dbic_schema->resultset($name)->find(
+              my $row = $rs->find(
                 +{
                   map {
                     my $key = $_;
@@ -434,10 +435,11 @@ sub to_graphql {
         $root_value{$delete_name} = sub {
           my ($args, $context, $info) = @_;
           DEBUG and _debug("DBIC.root_value($delete_name)", $args);
+          my $rs = $dbic_schema->resultset($name);
           [
             map {
               my $input = $_;
-              my $row = $dbic_schema->resultset($name)->find(
+              my $row = $rs->find(
                 +{
                   map {
                     my $key = $_;
