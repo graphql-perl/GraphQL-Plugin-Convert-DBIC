@@ -372,15 +372,14 @@ sub to_graphql {
         $root_value{$pksearch_name} = _make_query_resolver(\%name2rel21, $dbic_schema, 'find');
         $root_value{$pksearch_name_plural} = _make_query_resolver(\%name2rel21, $dbic_schema, 'search');
         $root_value{$input_search_name} = _make_query_resolver(\%name2rel21, $dbic_schema, 'search', 'input');
-        (
-          keys %{ $name2pk21{$name} } ? (
-            # the PK (singular) query
-            $pksearch_name => _make_query_pk_field($name, $type, \%name2pk21),
-            # the PKs query
-            $pksearch_name_plural => _make_query_pk_field($name, $type, \%name2pk21, 1),
-          ) : (),
+        my @fields = (
           $input_search_name => _make_input_field($name, $name, 'search', 0, 1),
-        )
+        );
+        push @fields, map((
+          ($_ ? $pksearch_name_plural : $pksearch_name),
+          _make_query_pk_field($name, $type, \%name2pk21, $_),
+        ), (0, 1)) if keys %{ $name2pk21{$name} };
+        @fields;
       } keys %name2type
     },
   };
