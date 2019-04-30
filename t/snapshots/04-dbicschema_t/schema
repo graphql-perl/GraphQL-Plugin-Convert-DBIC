@@ -163,21 +163,13 @@ type Query {
   employees(emp_no: [Int!]!): [Employee]
   salaries(from_date: [DateTime!]!): [Salary]
   salary(from_date: DateTime!): Salary
-  "input to search"
   searchCurrentDeptEmp(input: CurrentDeptEmpSearchInput!): [CurrentDeptEmp]
-  "input to search"
   searchDepartment(input: DepartmentSearchInput!): [Department]
-  "input to search"
   searchDeptEmp(input: DeptEmpSearchInput!): [DeptEmp]
-  "input to search"
   searchDeptEmpLatestDate(input: DeptEmpLatestDateSearchInput!): [DeptEmpLatestDate]
-  "input to search"
   searchDeptManager(input: DeptManagerSearchInput!): [DeptManager]
-  "input to search"
   searchEmployee(input: EmployeeSearchInput!): [Employee]
-  "input to search"
   searchSalary(input: SalarySearchInput!): [Salary]
-  "input to search"
   searchTitle(input: TitleSearchInput!): [Title]
   title(from_date: DateTime!, title: String!): Title
   titles(from_date: [DateTime!]!, title: [String!]!): [Title]

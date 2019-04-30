@@ -270,6 +270,20 @@ sub _make_query_pk_field {
   };
 }
 
+sub _make_input_field {
+  my ($typename, $return_type, $mutation_kind, $list_in, $list_out) = @_;
+  $return_type = _apply_modifier('list', $return_type) if $list_out;
+  my $input_type = $typename . ucfirst($mutation_kind) . 'Input';
+  $input_type = _apply_modifier('non_null', $input_type);
+  $input_type = _apply_modifier('non_null', _apply_modifier('list',
+    $input_type
+  )) if $list_in;
+  +{
+    type => $return_type,
+    args => { input => { type => $input_type } },
+  };
+}
+
 sub to_graphql {
   my ($class, $dbic_schema) = @_;
   $dbic_schema = $dbic_schema->() if ((ref($dbic_schema)||'') eq 'CODE');
@@ -365,15 +379,7 @@ sub to_graphql {
             # the PKs query
             $pksearch_name_plural => _make_query_pk_field($name, $type, \%name2pk21, 1),
           ) : (),
-          $input_search_name => {
-            description => 'input to search',
-            type => _apply_modifier('list', $name),
-            args => {
-              input => {
-                type => _apply_modifier('non_null', "${name}SearchInput")
-              },
-            },
-          },
+          $input_search_name => _make_input_field($name, $name, 'search', 0, 1),
         )
       } keys %name2type
     },
@@ -447,36 +453,9 @@ sub to_graphql {
           ];
         };
         (
-          $create_name => {
-            type => _apply_modifier('list', $name),
-            args => {
-              input => { type => _apply_modifier('non_null',
-                _apply_modifier('list',
-                  _apply_modifier('non_null', "${name}CreateInput")
-                )
-              ) },
-            },
-          },
-          $update_name => {
-            type => _apply_modifier('list', $name),
-            args => {
-              input => { type => _apply_modifier('non_null',
-                _apply_modifier('list',
-                  _apply_modifier('non_null', "${name}MutateInput")
-                )
-              ) },
-            },
-          },
-          $delete_name => {
-            type => _apply_modifier('list', 'Boolean'),
-            args => {
-              input => { type => _apply_modifier('non_null',
-                _apply_modifier('list',
-                  _apply_modifier('non_null', "${name}MutateInput")
-                )
-              ) },
-            },
-          },
+          $create_name => _make_input_field($name, $name, 'create', 1, 1),
+          $update_name => _make_input_field($name, $name, 'mutate', 1, 1),
+          $delete_name => _make_input_field($name, 'Boolean', 'mutate', 1, 1),
         )
       } grep !$name2isview{$_}, keys %name2type
     },

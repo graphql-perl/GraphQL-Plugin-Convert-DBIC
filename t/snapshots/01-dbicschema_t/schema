@@ -334,17 +334,11 @@ type Query {
   photos(id: [String!]!): [Photo]
   photoset(id: String!): Photoset
   photosets(id: [String!]!): [Photoset]
-  "input to search"
   searchBlog(input: BlogSearchInput!): [Blog]
-  "input to search"
   searchBlogTag(input: BlogTagSearchInput!): [BlogTag]
-  "input to search"
   searchMysql(input: MysqlSearchInput!): [Mysql]
-  "input to search"
   searchPg(input: PgSearchInput!): [Pg]
-  "input to search"
   searchPhoto(input: PhotoSearchInput!): [Photo]
-  "input to search"
   searchPhotoset(input: PhotosetSearchInput!): [Photoset]
 }
 '
