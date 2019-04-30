@@ -13,14 +13,7 @@ use_ok 'GraphQL::Plugin::Convert::DBIC';
 sub run_test {
   my ($args, $expected) = @_;
   my $got = execute(@$args);
-  is_deeply $got, $expected or diag nice_dump($got);
-}
-
-sub nice_dump {
-  my ($got) = @_;
-  local ($Data::Dumper::Sortkeys, $Data::Dumper::Indent, $Data::Dumper::Terse);
-  $Data::Dumper::Sortkeys = $Data::Dumper::Indent = $Data::Dumper::Terse = 1;
-  Dumper $got;
+  is_deeply $got, $expected or diag explain $got;
 }
 
 my $dbic_class = 'Schema';
