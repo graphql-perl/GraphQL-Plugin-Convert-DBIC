@@ -39,6 +39,12 @@ subtest 'execute pk + deeper query' => sub {
     photosets {
       id
       title
+      siblings: photos {
+        id
+      }
+      photos {
+        id
+      }
     }
   }
 }
@@ -67,14 +73,22 @@ EOF
             description => '',
             id => '4730337840',
             'photosets' => [
-              { id => '72157624222825789', title => 'Robot Arms' }
+              {
+                id => '72157624222825789', title => 'Robot Arms',
+                photos => [ { id => '4730337840' }, { id => '4656987762' } ],
+                siblings => [ { id => '4730337840' }, { id => '4656987762' } ],
+              },
             ],
           },
           {
             description => 'Again - receding hairpieces please!',
             id => '4730349774',
             photosets => [
-              { id => '72157624222820921', title => 'Head Museum' }
+              {
+                id => '72157624222820921', title => 'Head Museum',
+                photos => [ { id => '4730349774' } ],
+                siblings => [ { id => '4730349774' } ],
+              },
             ],
           },
         ],
