@@ -223,10 +223,11 @@ sub field_resolver {
 }
 
 sub _subfieldrels {
-  my ($name, $name2rel21, $field_nodes) = @_;
-  grep $name2rel21->{$name}->{$_},
-    map $_->{name}, grep $_->{kind} eq 'field', map @{$_->{selections}},
-    grep $_->{kind} eq 'field', @$field_nodes;
+  my ($field_node) = @_;
+  die "_subfieldrels called on non-field" if $field_node->{kind} ne 'field';
+  return {} unless my @sels = @{ $field_node->{selections} || [] };
+  return {} unless my @withsels = grep @{ $_->{selections} || [] }, @sels;
+  +{ map { $_->{name} => _subfieldrels($_) } @withsels };
 }
 
 sub _make_update_arg {
@@ -239,14 +240,14 @@ sub _make_query_resolver {
   sub {
     my ($args, $content, $info) = @_;
     my $name = $info->{return_type}->name;
-    my @subfieldrels = _subfieldrels($name, $name2rel21, $info->{field_nodes});
+    my @subfieldrels = map _subfieldrels($_), @{$info->{field_nodes}};
     $args = $args->{$deref_key} if $deref_key;
     $args = +{ map { ("me.$_" => $args->{$_}) } keys %$args };
     DEBUG and _debug('DBIC.root_value', $name, $method, $args, \@subfieldrels);
     my $rs = $dbic_schema->resultset($name);
     my $result = $rs->$method(
       $args,
-      { prefetch => \@subfieldrels },
+      { prefetch => { map %$, @subfieldrels } },
     );
     $result = [ $result->all ] if $method eq 'search';
     $result;
