@@ -157,13 +157,13 @@ sub _type2createinput {
     fields => {
       (map { ($_ => $fields->{$_}) }
         grep !$name2pk21->{$name}{$_} && !$fk21->{$_}, keys %$column21),
-      _make_fk_fields($name, $fk21, $name2type, $name2pk21),
+      _make_fk_fields($name, $fk21, $name2type),
     },
   };
 }
 
 sub _type2searchinput {
-  my ($name, $column2rawtype, $name2pk21, $column21, $name2type) = @_;
+  my ($name, $column2rawtype, $name2pk21, $column21) = @_;
   +{
     kind => 'input',
     name => "${name}SearchInput",
@@ -189,7 +189,7 @@ sub _type2mutateinput {
 }
 
 sub _make_fk_fields {
-  my ($name, $fk21, $name2type, $name2pk21) = @_;
+  my ($name, $fk21, $name2type) = @_;
   my $type = $name2type->{$name};
   (map {
     my $field_type = $type->{fields}{$_}{type};
@@ -381,7 +381,7 @@ sub to_graphql {
   ), grep !$name2isview{$_}, keys %name2type;
   push @ast, map _type2searchinput(
     $_, $name2column2rawtype{$_}, \%name2pk21,
-    $name2column21{$_}, \%name2type,
+    $name2column21{$_},
   ), keys %name2type;
   push @ast, map _type2mutateinput(
     $_, $name2column2rawtype{$_}, $name2type{$_}->{fields}, \%name2pk21,
