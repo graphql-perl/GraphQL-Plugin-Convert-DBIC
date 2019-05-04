@@ -23,6 +23,10 @@ input DepartmentCreateInput {
   dept_name: String!
 }
 
+input DepartmentIDInput {
+  dept_no: String!
+}
+
 input DepartmentMutateInput {
   dept_name: String
   dept_no: String!
@@ -44,6 +48,9 @@ input DeptEmpCreateInput {
   emp_no: EmployeeMutateInput!
   from_date: DateTime!
   to_date: DateTime!
+}
+
+input DeptEmpIDInput {
 }
 
 type DeptEmpLatestDate {
@@ -82,6 +89,9 @@ input DeptManagerCreateInput {
   to_date: DateTime!
 }
 
+input DeptManagerIDInput {
+}
+
 input DeptManagerMutateInput {
   from_date: DateTime
   to_date: DateTime
@@ -116,6 +126,10 @@ input EmployeeCreateInput {
 enum EmployeeGender {
   F
   M
+}
+
+input EmployeeIDInput {
+  emp_no: Int!
 }
 
 input EmployeeMutateInput {
@@ -188,6 +202,10 @@ input SalaryCreateInput {
   to_date: DateTime!
 }
 
+input SalaryIDInput {
+  from_date: DateTime!
+}
+
 input SalaryMutateInput {
   from_date: DateTime!
   salary: Int
@@ -209,6 +227,11 @@ type Title {
 input TitleCreateInput {
   emp_no: EmployeeMutateInput!
   to_date: DateTime
+}
+
+input TitleIDInput {
+  from_date: DateTime!
+  title: String!
 }
 
 input TitleMutateInput {

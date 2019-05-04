@@ -162,6 +162,18 @@ sub _type2createinput {
   };
 }
 
+sub _type2idinput {
+  my ($name, $fields, $pk21) = @_;
+  +{
+    kind => 'input',
+    name => "${name}IDInput",
+    fields => {
+      (map { ($_ => $fields->{$_}) }
+        keys %$pk21),
+    },
+  };
+}
+
 sub _type2searchinput {
   my ($name, $column2rawtype, $pk21, $column21) = @_;
   +{
@@ -375,6 +387,10 @@ sub to_graphql {
     $name2type{$name} = $spec;
     push @ast, $spec;
   }
+  push @ast, map _type2idinput(
+    $_, $name2type{$_}->{fields}, $name2pk21{$_},
+    $name2column21{$_},
+  ), grep !$name2isview{$_} || keys %{ $name2pk21{$_} }, keys %name2type;
   push @ast, map _type2createinput(
     $_, $name2type{$_}->{fields}, $name2pk21{$_}, $name2fk21{$_},
     $name2column21{$_}, \%name2type,

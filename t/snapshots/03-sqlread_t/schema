@@ -12,6 +12,10 @@ input AuthorCreateInput {
   name: String
 }
 
+input AuthorIDInput {
+  id: Int!
+}
+
 input AuthorMutateInput {
   age: Int
   id: Int!
@@ -35,6 +39,10 @@ type Module {
 input ModuleCreateInput {
   author_id: Int
   name: String
+}
+
+input ModuleIDInput {
+  id: Int!
 }
 
 input ModuleMutateInput {

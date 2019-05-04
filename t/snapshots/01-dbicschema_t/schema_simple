@@ -18,6 +18,10 @@ input BlogCreateInput {
   title: String!
 }
 
+input BlogIDInput {
+  id: Int!
+}
+
 input BlogMutateInput {
   content: String
   created_time: String
@@ -46,6 +50,10 @@ type BlogTag {
 input BlogTagCreateInput {
   blog: BlogMutateInput!
   name: String!
+}
+
+input BlogTagIDInput {
+  id: Int!
 }
 
 input BlogTagMutateInput {
@@ -111,6 +119,10 @@ enum MysqlEnumColumn {
   foo
 }
 
+input MysqlIDInput {
+  id: String!
+}
+
 input MysqlMutateInput {
   another_enum_column: MysqlAnotherEnumColumn
   enum_column: MysqlEnumColumn
@@ -139,6 +151,10 @@ input PgCreateInput {
   enum_column: CustomType!
   timestamp_with_tz: DateTime
   timestamp_without_tz: DateTime!
+}
+
+input PgIDInput {
+  id: String!
 }
 
 input PgMutateInput {
@@ -198,6 +214,10 @@ input PhotoCreateInput {
   square: String
   taken: DateTime
   thumbnail: String
+}
+
+input PhotoIDInput {
+  id: String!
 }
 
 input PhotoMutateInput {
@@ -279,6 +299,10 @@ input PhotosetCreateInput {
   title: String!
   videos: Int
   visibility_can_see_set: Int
+}
+
+input PhotosetIDInput {
+  id: String!
 }
 
 input PhotosetMutateInput {
