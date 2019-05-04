@@ -294,11 +294,27 @@ sub _make_input_field {
   };
 }
 
+use constant MUTATE_ARGSPROCESS => {
+  update => sub { $_[0]->{payload} },
+  delete => sub { },
+};
+use constant MUTATE_POSTPROCESS => {
+  update => sub { ref($_[0]) eq 'GraphQL::Error' ? $_[0] : $_[0]->discard_changes },
+  delete => sub { ref($_[0]) eq 'GraphQL::Error' ? $_[0] : $_[0] && 1 },
+};
 sub _make_mutation_resolver {
-  my ($dbic_schema, $name, $method, $deref_key, $is_list, $find_first, $args_process, $result_process) = @_;
+  my ($dbic_schema) = @_;
   sub {
     my ($args, $context, $info) = @_;
-    $args = $args->{$deref_key} if $deref_key;
+    my $name = $info->{field_name};
+    die "Couldn't understand field '$name'"
+      unless $name =~ s/^(create|update|delete)//;
+    my $method = $1;
+    my $find_first = $method ne 'create';
+    my ($args_process, $result_process) = map $_->{$method},
+      MUTATE_ARGSPROCESS, MUTATE_POSTPROCESS;
+    $args = $args->{input} if $args->{input};
+    my $is_list = ref $args eq 'ARRAY';
     $args = [ $args ] if !$is_list; # so can just deal as list below
     DEBUG and _debug("DBIC.root_value", $args);
     my $rs = $dbic_schema->resultset($name);
@@ -424,17 +440,11 @@ sub to_graphql {
       map {
         my $name = $_;
         my $create_name = "create$name";
-        $root_value{$create_name} = _make_mutation_resolver($dbic_schema, $name, 'create', 'input', 1, 0);
+        $root_value{$create_name} = _make_mutation_resolver($dbic_schema);
         my $update_name = "update$name";
-        $root_value{$update_name} = _make_mutation_resolver($dbic_schema, $name, 'update', 'input', 1, 1,
-          sub { $_[0]->{payload} },
-          sub { ref($_[0]) eq 'GraphQL::Error' ? $_[0] : $_[0]->discard_changes },
-        );
+        $root_value{$update_name} = _make_mutation_resolver($dbic_schema);
         my $delete_name = "delete$name";
-        $root_value{$delete_name} = _make_mutation_resolver($dbic_schema, $name, 'delete', 'input', 1, 1,
-          sub { },
-          sub { ref($_[0]) eq 'GraphQL::Error' ? $_[0] : $_[0] && 1 },
-        );
+        $root_value{$delete_name} = _make_mutation_resolver($dbic_schema);
         (
           $create_name => _make_input_field($name, $name, 'create', 1, 1),
           $update_name => _make_input_field($name, $name, 'update', 1, 1),
