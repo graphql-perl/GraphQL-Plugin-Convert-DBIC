@@ -168,9 +168,9 @@ query q {
 
 mutation m {
   updatePhoto(input: [
-    { id: "4656987762", locality: "Else2" }
-    { id: "4730349774", locality: "Else1" }
-    { id: "nonexistent", locality: "Else3" }
+    { id: { id: "4656987762" }, payload: { locality: "Else2" } }
+    { id: { id: "4730349774" }, payload: { locality: "Else1" } }
+    { id: { id: "nonexistent" }, payload: { locality: "Else3" } }
   ]) {
     id
     locality

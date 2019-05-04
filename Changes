@@ -1,3 +1,4 @@
+ - update now uses *UpdateInput = *IDInput, *SearchInput
  - make just one field-resolver, not lots
 
 0.14 2019-04-11

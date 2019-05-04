@@ -27,13 +27,13 @@ input DepartmentIDInput {
   dept_no: String!
 }
 
-input DepartmentMutateInput {
-  dept_name: String
-  dept_no: String!
-}
-
 input DepartmentSearchInput {
   dept_name: String
+}
+
+input DepartmentUpdateInput {
+  id: DepartmentIDInput!
+  payload: DepartmentSearchInput!
 }
 
 type DeptEmp {
@@ -44,8 +44,8 @@ type DeptEmp {
 }
 
 input DeptEmpCreateInput {
-  dept_no: DepartmentMutateInput!
-  emp_no: EmployeeMutateInput!
+  dept_no: DepartmentIDInput!
+  emp_no: EmployeeIDInput!
   from_date: DateTime!
   to_date: DateTime!
 }
@@ -65,14 +65,14 @@ input DeptEmpLatestDateSearchInput {
   to_date: DateTime
 }
 
-input DeptEmpMutateInput {
+input DeptEmpSearchInput {
   from_date: DateTime
   to_date: DateTime
 }
 
-input DeptEmpSearchInput {
-  from_date: DateTime
-  to_date: DateTime
+input DeptEmpUpdateInput {
+  id: DeptEmpIDInput!
+  payload: DeptEmpSearchInput!
 }
 
 type DeptManager {
@@ -83,8 +83,8 @@ type DeptManager {
 }
 
 input DeptManagerCreateInput {
-  dept_no: DepartmentMutateInput!
-  emp_no: EmployeeMutateInput!
+  dept_no: DepartmentIDInput!
+  emp_no: EmployeeIDInput!
   from_date: DateTime!
   to_date: DateTime!
 }
@@ -92,14 +92,14 @@ input DeptManagerCreateInput {
 input DeptManagerIDInput {
 }
 
-input DeptManagerMutateInput {
+input DeptManagerSearchInput {
   from_date: DateTime
   to_date: DateTime
 }
 
-input DeptManagerSearchInput {
-  from_date: DateTime
-  to_date: DateTime
+input DeptManagerUpdateInput {
+  id: DeptManagerIDInput!
+  payload: DeptManagerSearchInput!
 }
 
 type Employee {
@@ -132,21 +132,17 @@ input EmployeeIDInput {
   emp_no: Int!
 }
 
-input EmployeeMutateInput {
-  birth_date: DateTime
-  emp_no: Int!
-  first_name: String
-  gender: EmployeeGender
-  hire_date: DateTime
-  last_name: String
-}
-
 input EmployeeSearchInput {
   birth_date: DateTime
   first_name: String
   gender: EmployeeGender
   hire_date: DateTime
   last_name: String
+}
+
+input EmployeeUpdateInput {
+  id: EmployeeIDInput!
+  payload: EmployeeSearchInput!
 }
 
 type Mutation {
@@ -162,12 +158,12 @@ type Mutation {
   deleteEmployee(input: [EmployeeIDInput!]!): [Boolean]
   deleteSalary(input: [SalaryIDInput!]!): [Boolean]
   deleteTitle(input: [TitleIDInput!]!): [Boolean]
-  updateDepartment(input: [DepartmentMutateInput!]!): [Department]
-  updateDeptEmp(input: [DeptEmpMutateInput!]!): [DeptEmp]
-  updateDeptManager(input: [DeptManagerMutateInput!]!): [DeptManager]
-  updateEmployee(input: [EmployeeMutateInput!]!): [Employee]
-  updateSalary(input: [SalaryMutateInput!]!): [Salary]
-  updateTitle(input: [TitleMutateInput!]!): [Title]
+  updateDepartment(input: [DepartmentUpdateInput!]!): [Department]
+  updateDeptEmp(input: [DeptEmpUpdateInput!]!): [DeptEmp]
+  updateDeptManager(input: [DeptManagerUpdateInput!]!): [DeptManager]
+  updateEmployee(input: [EmployeeUpdateInput!]!): [Employee]
+  updateSalary(input: [SalaryUpdateInput!]!): [Salary]
+  updateTitle(input: [TitleUpdateInput!]!): [Title]
 }
 
 type Query {
@@ -197,7 +193,7 @@ type Salary {
 }
 
 input SalaryCreateInput {
-  emp_no: EmployeeMutateInput!
+  emp_no: EmployeeIDInput!
   salary: Int!
   to_date: DateTime!
 }
@@ -206,15 +202,14 @@ input SalaryIDInput {
   from_date: DateTime!
 }
 
-input SalaryMutateInput {
-  from_date: DateTime!
+input SalarySearchInput {
   salary: Int
   to_date: DateTime
 }
 
-input SalarySearchInput {
-  salary: Int
-  to_date: DateTime
+input SalaryUpdateInput {
+  id: SalaryIDInput!
+  payload: SalarySearchInput!
 }
 
 type Title {
@@ -225,7 +220,7 @@ type Title {
 }
 
 input TitleCreateInput {
-  emp_no: EmployeeMutateInput!
+  emp_no: EmployeeIDInput!
   to_date: DateTime
 }
 
@@ -234,13 +229,12 @@ input TitleIDInput {
   title: String!
 }
 
-input TitleMutateInput {
-  from_date: DateTime!
-  title: String!
+input TitleSearchInput {
   to_date: DateTime
 }
 
-input TitleSearchInput {
-  to_date: DateTime
+input TitleUpdateInput {
+  id: TitleIDInput!
+  payload: TitleSearchInput!
 }
 '

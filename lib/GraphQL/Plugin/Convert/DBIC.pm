@@ -186,16 +186,14 @@ sub _type2searchinput {
   };
 }
 
-sub _type2mutateinput {
-  my ($name, $column2rawtype, $fields, $pk21, $column21) = @_;
+sub _type2updateinput {
+  my ($name) = @_;
   +{
     kind => 'input',
-    name => "${name}MutateInput",
+    name => "${name}UpdateInput",
     fields => {
-      (map { ($_ => { type => $column2rawtype->{$_} }) }
-        grep !$pk21->{$_}, keys %$column21),
-      (map { ($_ => $fields->{$_}) }
-        grep $pk21->{$_}, keys %$column21),
+      id => { type => _apply_modifier('non_null', "${name}IDInput") },
+      payload => { type => _apply_modifier('non_null', "${name}SearchInput") },
     },
   };
 }
@@ -209,7 +207,7 @@ sub _make_fk_fields {
       my $non_null =
         ref($field_type) eq 'ARRAY' && $field_type->[0] eq 'non_null';
       $field_type = _apply_modifier(
-        $non_null && 'non_null', _remove_modifiers($field_type)."MutateInput"
+        $non_null && 'non_null', _remove_modifiers($field_type)."IDInput"
       );
     }
     ($_ => { type => $field_type })
@@ -240,11 +238,6 @@ sub _subfieldrels {
   return {} unless my @sels = @{ $field_node->{selections} || [] };
   return {} unless my @withsels = grep @{ $_->{selections} || [] }, @sels;
   +{ map { $_->{name} => _subfieldrels($_) } @withsels };
-}
-
-sub _make_update_arg {
-  my ($name, $pk21, $input) = @_;
-  +{ map { $_ => $input->{$_} } grep !$pk21->{$_}, keys %$input };
 }
 
 sub _make_query_resolver {
@@ -312,7 +305,7 @@ sub _make_mutation_resolver {
     my $all_result = [
       map {
         my $operand = $rs;
-        $operand = $operand->find($_) if $find_first;
+        $operand = $operand->find($_->{id}) if $find_first;
         my $result = $operand
           ? $operand->$method($args_process ? $args_process->($_) : $_)
           : GraphQL::Error->coerce("$name not found");
@@ -399,10 +392,7 @@ sub to_graphql {
     $_, $name2column2rawtype{$_}, $name2pk21{$_},
     $name2column21{$_},
   ), keys %name2type;
-  push @ast, map _type2mutateinput(
-    $_, $name2column2rawtype{$_}, $name2type{$_}->{fields}, $name2pk21{$_},
-    $name2column21{$_},
-  ), grep !$name2isview{$_}, keys %name2type;
+  push @ast, map _type2updateinput($_), grep !$name2isview{$_}, keys %name2type;
   push @ast, {
     kind => 'type',
     name => 'Query',
@@ -437,7 +427,7 @@ sub to_graphql {
         $root_value{$create_name} = _make_mutation_resolver($dbic_schema, $name, 'create', 'input', 1, 0);
         my $update_name = "update$name";
         $root_value{$update_name} = _make_mutation_resolver($dbic_schema, $name, 'update', 'input', 1, 1,
-          sub { _make_update_arg($name, $name2pk21{$name}, $_[0]) },
+          sub { $_[0]->{payload} },
           sub { ref($_[0]) eq 'GraphQL::Error' ? $_[0] : $_[0]->discard_changes },
         );
         my $delete_name = "delete$name";
@@ -447,7 +437,7 @@ sub to_graphql {
         );
         (
           $create_name => _make_input_field($name, $name, 'create', 1, 1),
-          $update_name => _make_input_field($name, $name, 'mutate', 1, 1),
+          $update_name => _make_input_field($name, $name, 'update', 1, 1),
           $delete_name => _make_input_field($name, 'Boolean', 'ID', 1, 1),
         )
       } grep !$name2isview{$_}, keys %name2type
@@ -551,7 +541,10 @@ then request any required fields of this.
 Meanwhile, the update and delete ones need to include the primary key
 fields, to indicate what to mutate, and also all non-primary key fields
 as nullable, which for update will mean leaving them unchanged, and for
-delete is to be ignored.
+delete is to be ignored. These input types are split into one input
+for the primary keys, which is a full input type to allow for multiple
+primary keys, then a wrapper input for updates, that takes one ID input,
+and a payload that due to the same requirements, is just the search input.
 
 Therefore, for the above, these input types (and an updated Query,
 and Mutation) are created:
@@ -566,10 +559,13 @@ and Mutation) are created:
     language: String
   }
 
-  input BlogMutateInput {
+  input BlogIDInput {
     id: Int!
-    title: String
-    language: String
+  }
+
+  input BlogUpdateInput {
+    id: BlogIDInput!
+    payload: BlogSearchInput!
   }
 
   input ArticleCreateInput {
@@ -583,19 +579,22 @@ and Mutation) are created:
     content: String
   }
 
-  input ArticleMutateInput {
+  input ArticleIDInput {
     id: Int!
-    title: String!
-    language: String
+  }
+
+  input ArticleUpdateInput {
+    id: ArticleIDInput!
+    payload: ArticleSearchInput!
   }
 
   type Mutation {
     createBlog(input: [BlogCreateInput!]!): [Blog]
     createArticle(input: [ArticleCreateInput!]!): [Article]
-    deleteBlog(input: [BlogMutateInput!]!): [Boolean]
-    deleteArticle(input: [ArticleMutateInput!]!): [Boolean]
-    updateBlog(input: [BlogMutateInput!]!): [Blog]
-    updateArticle(input: [ArticleMutateInput!]!): [Article]
+    deleteBlog(input: [BlogIDInput!]!): [Boolean]
+    deleteArticle(input: [ArticleIDInput!]!): [Boolean]
+    updateBlog(input: [BlogUpdateInput!]!): [Blog]
+    updateArticle(input: [ArticleUpdateInput!]!): [Article]
   }
 
   extends type Query {
