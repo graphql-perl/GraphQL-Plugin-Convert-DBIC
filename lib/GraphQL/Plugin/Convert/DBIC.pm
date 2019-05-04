@@ -448,7 +448,7 @@ sub to_graphql {
         (
           $create_name => _make_input_field($name, $name, 'create', 1, 1),
           $update_name => _make_input_field($name, $name, 'mutate', 1, 1),
-          $delete_name => _make_input_field($name, 'Boolean', 'mutate', 1, 1),
+          $delete_name => _make_input_field($name, 'Boolean', 'ID', 1, 1),
         )
       } grep !$name2isview{$_}, keys %name2type
     },

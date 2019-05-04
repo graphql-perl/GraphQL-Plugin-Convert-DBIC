@@ -59,8 +59,8 @@ input ModuleSearchInput {
 type Mutation {
   createAuthor(input: [AuthorCreateInput!]!): [Author]
   createModule(input: [ModuleCreateInput!]!): [Module]
-  deleteAuthor(input: [AuthorMutateInput!]!): [Boolean]
-  deleteModule(input: [ModuleMutateInput!]!): [Boolean]
+  deleteAuthor(input: [AuthorIDInput!]!): [Boolean]
+  deleteModule(input: [ModuleIDInput!]!): [Boolean]
   updateAuthor(input: [AuthorMutateInput!]!): [Author]
   updateModule(input: [ModuleMutateInput!]!): [Module]
 }
