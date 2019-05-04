@@ -395,7 +395,6 @@ sub to_graphql {
         my $pksearch_name = lcfirst $name;
         my $pksearch_name_plural = to_PL($pksearch_name);
         my $input_search_name = "search$name";
-        # TODO now only one deep, no handle fragments or abstract types
         $root_value{$pksearch_name} = _make_query_resolver($dbic_schema, 'find');
         $root_value{$pksearch_name_plural} = _make_query_resolver($dbic_schema, 'search');
         $root_value{$input_search_name} = _make_query_resolver($dbic_schema, 'search', 'input');
