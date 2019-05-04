@@ -236,16 +236,16 @@ sub _make_update_arg {
 }
 
 sub _make_query_resolver {
-  my ($dbic_schema, $deref_key) = @_;
+  my ($dbic_schema) = @_;
   sub {
     my ($args, $content, $info) = @_;
     my $name = $info->{return_type}->name;
     my $method = $info->{return_type}->isa('GraphQL::Type::List')
       ? 'search' : 'find';
     my @subfieldrels = map _subfieldrels($_), @{$info->{field_nodes}};
-    $args = $args->{$deref_key} if $deref_key;
+    $args = $args->{input} if ref $args->{input} eq 'HASH';
     $args = +{ map { ("me.$_" => $args->{$_}) } keys %$args };
-    DEBUG and _debug('DBIC.root_value', $name, $method, $args, \@subfieldrels);
+    DEBUG and _debug('DBIC.root_value', $name, $method, $args, \@subfieldrels, $info);
     my $rs = $dbic_schema->resultset($name);
     $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
     my $result = $rs->$method(
@@ -399,7 +399,7 @@ sub to_graphql {
         my $input_search_name = "search$name";
         $root_value{$pksearch_name} = _make_query_resolver($dbic_schema);
         $root_value{$pksearch_name_plural} = _make_query_resolver($dbic_schema);
-        $root_value{$input_search_name} = _make_query_resolver($dbic_schema, 'input');
+        $root_value{$input_search_name} = _make_query_resolver($dbic_schema);
         my @fields = (
           $input_search_name => _make_input_field($name, $name, 'search', 0, 1),
         );
