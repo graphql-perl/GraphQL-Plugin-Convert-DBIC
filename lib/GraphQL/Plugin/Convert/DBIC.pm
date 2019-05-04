@@ -236,10 +236,12 @@ sub _make_update_arg {
 }
 
 sub _make_query_resolver {
-  my ($dbic_schema, $method, $deref_key) = @_;
+  my ($dbic_schema, $deref_key) = @_;
   sub {
     my ($args, $content, $info) = @_;
     my $name = $info->{return_type}->name;
+    my $method = $info->{return_type}->isa('GraphQL::Type::List')
+      ? 'search' : 'find';
     my @subfieldrels = map _subfieldrels($_), @{$info->{field_nodes}};
     $args = $args->{$deref_key} if $deref_key;
     $args = +{ map { ("me.$_" => $args->{$_}) } keys %$args };
@@ -395,9 +397,9 @@ sub to_graphql {
         my $pksearch_name = lcfirst $name;
         my $pksearch_name_plural = to_PL($pksearch_name);
         my $input_search_name = "search$name";
-        $root_value{$pksearch_name} = _make_query_resolver($dbic_schema, 'find');
-        $root_value{$pksearch_name_plural} = _make_query_resolver($dbic_schema, 'search');
-        $root_value{$input_search_name} = _make_query_resolver($dbic_schema, 'search', 'input');
+        $root_value{$pksearch_name} = _make_query_resolver($dbic_schema);
+        $root_value{$pksearch_name_plural} = _make_query_resolver($dbic_schema);
+        $root_value{$input_search_name} = _make_query_resolver($dbic_schema, 'input');
         my @fields = (
           $input_search_name => _make_input_field($name, $name, 'search', 0, 1),
         );
