@@ -217,7 +217,13 @@ sub _make_fk_fields {
 sub field_resolver {
   my ($root_value, $args, $context, $info) = @_;
   my $field_name = $info->{field_name};
-  DEBUG and _debug('DBIC.resolver', $root_value, $field_name, $args);
+  DEBUG and _debug('DBIC.resolver', $field_name, $args, $info);
+  my $parent_name = $info->{parent_type}->name;
+  if ($parent_name eq 'Mutation') {
+    goto &_mutation_resolver;
+  } elsif ($parent_name eq 'Query') {
+    goto &_query_resolver;
+  }
   my $property = ref($root_value) eq 'HASH'
     ? $root_value->{$field_name}
     : $root_value;
@@ -240,26 +246,23 @@ sub _subfieldrels {
   +{ map { $_->{name} => _subfieldrels($_) } @withsels };
 }
 
-sub _make_query_resolver {
-  my ($dbic_schema) = @_;
-  sub {
-    my ($args, $content, $info) = @_;
-    my $name = $info->{return_type}->name;
-    my $method = $info->{return_type}->isa('GraphQL::Type::List')
-      ? 'search' : 'find';
-    my @subfieldrels = map _subfieldrels($_), @{$info->{field_nodes}};
-    $args = $args->{input} if ref $args->{input} eq 'HASH';
-    $args = +{ map { ("me.$_" => $args->{$_}) } keys %$args };
-    DEBUG and _debug('DBIC.root_value', $name, $method, $args, \@subfieldrels, $info);
-    my $rs = $dbic_schema->resultset($name);
-    $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
-    my $result = $rs->$method(
-      $args,
-      { prefetch => { map %$, @subfieldrels } },
-    );
-    $result = [ $result->all ] if $method eq 'search';
-    $result;
-  }
+sub _query_resolver {
+  my ($dbic_schema, $args, $context, $info) = @_;
+  my $name = $info->{return_type}->name;
+  my $method = $info->{return_type}->isa('GraphQL::Type::List')
+    ? 'search' : 'find';
+  my @subfieldrels = map _subfieldrels($_), @{$info->{field_nodes}};
+  $args = $args->{input} if ref $args->{input} eq 'HASH';
+  $args = +{ map { ("me.$_" => $args->{$_}) } keys %$args };
+  DEBUG and _debug('DBIC.root_value', $name, $method, $args, \@subfieldrels, $info);
+  my $rs = $dbic_schema->resultset($name);
+  $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
+  my $result = $rs->$method(
+    $args,
+    { prefetch => { map %$, @subfieldrels } },
+  );
+  $result = [ $result->all ] if $method eq 'search';
+  $result;
 }
 
 sub _make_query_pk_field {
@@ -302,43 +305,39 @@ use constant MUTATE_POSTPROCESS => {
   update => sub { ref($_[0]) eq 'GraphQL::Error' ? $_[0] : $_[0]->discard_changes },
   delete => sub { ref($_[0]) eq 'GraphQL::Error' ? $_[0] : $_[0] && 1 },
 };
-sub _make_mutation_resolver {
-  my ($dbic_schema) = @_;
-  sub {
-    my ($args, $context, $info) = @_;
-    my $name = $info->{field_name};
-    die "Couldn't understand field '$name'"
-      unless $name =~ s/^(create|update|delete)//;
-    my $method = $1;
-    my $find_first = $method ne 'create';
-    my ($args_process, $result_process) = map $_->{$method},
-      MUTATE_ARGSPROCESS, MUTATE_POSTPROCESS;
-    $args = $args->{input} if $args->{input};
-    my $is_list = ref $args eq 'ARRAY';
-    $args = [ $args ] if !$is_list; # so can just deal as list below
-    DEBUG and _debug("DBIC.root_value", $args);
-    my $rs = $dbic_schema->resultset($name);
-    my $all_result = [
-      map {
-        my $operand = $rs;
-        $operand = $operand->find($_->{id}) if $find_first;
-        my $result = $operand
-          ? $operand->$method($args_process ? $args_process->($_) : $_)
-          : GraphQL::Error->coerce("$name not found");
-        $result = $result_process->($result)
-          if $result_process and ref($result) ne 'GraphQL::Error';
-        $result;
-      } @$args
-    ];
-    $all_result = $all_result->[0] if !$is_list;
-    $all_result
-  };
+sub _mutation_resolver {
+  my ($dbic_schema, $args, $context, $info) = @_;
+  my $name = $info->{field_name};
+  die "Couldn't understand field '$name'"
+    unless $name =~ s/^(create|update|delete)//;
+  my $method = $1;
+  my $find_first = $method ne 'create';
+  my ($args_process, $result_process) = map $_->{$method},
+    MUTATE_ARGSPROCESS, MUTATE_POSTPROCESS;
+  $args = $args->{input} if $args->{input};
+  my $is_list = ref $args eq 'ARRAY';
+  $args = [ $args ] if !$is_list; # so can just deal as list below
+  DEBUG and _debug("DBIC.root_value", $args);
+  my $rs = $dbic_schema->resultset($name);
+  my $all_result = [
+    map {
+      my $operand = $rs;
+      $operand = $operand->find($_->{id}) if $find_first;
+      my $result = $operand
+        ? $operand->$method($args_process ? $args_process->($_) : $_)
+        : GraphQL::Error->coerce("$name not found");
+      $result = $result_process->($result)
+        if $result_process and ref($result) ne 'GraphQL::Error';
+      $result;
+    } @$args
+  ];
+  $all_result = $all_result->[0] if !$is_list;
+  $all_result
 }
 
 sub to_graphql {
   my ($class, $dbic_schema) = @_;
   $dbic_schema = $dbic_schema->() if ((ref($dbic_schema)||'') eq 'CODE');
-  my %root_value;
   my @ast;
   my (
     %name2type, %name2column21, %name2pk21, %name2fk21,
@@ -419,9 +418,6 @@ sub to_graphql {
         my $pksearch_name = lcfirst $name;
         my $pksearch_name_plural = to_PL($pksearch_name);
         my $input_search_name = "search$name";
-        $root_value{$pksearch_name} = _make_query_resolver($dbic_schema);
-        $root_value{$pksearch_name_plural} = _make_query_resolver($dbic_schema);
-        $root_value{$input_search_name} = _make_query_resolver($dbic_schema);
         my @fields = (
           $input_search_name => _make_input_field($name, $name, 'search', 0, 1),
         );
@@ -440,11 +436,8 @@ sub to_graphql {
       map {
         my $name = $_;
         my $create_name = "create$name";
-        $root_value{$create_name} = _make_mutation_resolver($dbic_schema);
         my $update_name = "update$name";
-        $root_value{$update_name} = _make_mutation_resolver($dbic_schema);
         my $delete_name = "delete$name";
-        $root_value{$delete_name} = _make_mutation_resolver($dbic_schema);
         (
           $create_name => _make_input_field($name, $name, 'create', 1, 1),
           $update_name => _make_input_field($name, $name, 'update', 1, 1),
@@ -455,7 +448,7 @@ sub to_graphql {
   };
   +{
     schema => GraphQL::Schema->from_ast(\@ast),
-    root_value => \%root_value,
+    root_value => $dbic_schema,
     resolver => \&field_resolver,
   };
 }
