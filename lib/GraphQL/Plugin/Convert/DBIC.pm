@@ -259,7 +259,7 @@ sub _query_resolver {
   $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
   my $result = $rs->$method(
     $args,
-    { prefetch => { map %$, @subfieldrels } },
+    { prefetch => { map %$_, @subfieldrels } },
   );
   $result = [ $result->all ] if $method eq 'search';
   $result;
