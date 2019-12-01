@@ -37,6 +37,7 @@ my %GRAPHQL_TYPE2SQLS = (
     'multiset',
     'multiset_locator',
     # mysql
+    'set',
     'text',
     'tinytext',
     'mediumtext',
@@ -51,6 +52,7 @@ my %GRAPHQL_TYPE2SQLS = (
     'tinyint',
     'integer',
     'smallint',
+    'mediumint',
     'interval',
     'interval_year',
     'interval_month',
