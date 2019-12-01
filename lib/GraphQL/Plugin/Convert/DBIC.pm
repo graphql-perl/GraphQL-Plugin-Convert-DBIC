@@ -6,7 +6,7 @@ use GraphQL::Debug qw(_debug);
 use Lingua::EN::Inflect::Number qw(to_S to_PL);
 use Carp qw(confess);
 
-our $VERSION = "0.15";
+our $VERSION = "0.16";
 use constant DEBUG => $ENV{GRAPHQL_DEBUG};
 
 my %GRAPHQL_TYPE2SQLS = (
@@ -260,7 +260,7 @@ sub _query_resolver {
   my $rs = $dbic_schema->resultset($name);
   my $result = $rs->$method(
     $args,
-    { 
+    {
       prefetch => { map %$_, @subfieldrels },
       result_class => 'DBIx::Class::ResultClass::HashRefInflator'
     },
