@@ -258,10 +258,12 @@ sub _query_resolver {
   $args = +{ map { ("me.$_" => $args->{$_}) } keys %$args };
   DEBUG and _debug('DBIC.root_value', $name, $method, $args, \@subfieldrels, $info);
   my $rs = $dbic_schema->resultset($name);
-  $rs->result_class('DBIx::Class::ResultClass::HashRefInflator');
   my $result = $rs->$method(
     $args,
-    { prefetch => { map %$, @subfieldrels } },
+    { 
+      prefetch => { map %$_, @subfieldrels },
+      result_class => 'DBIx::Class::ResultClass::HashRefInflator'
+    },
   );
   $result = [ $result->all ] if $method eq 'search';
   $result;
