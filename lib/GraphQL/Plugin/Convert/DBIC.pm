@@ -482,8 +482,8 @@ GraphQL::Plugin::Convert::DBIC - convert DBIx::Class schema to GraphQL schema
 =head1 SYNOPSIS
 
   use GraphQL::Plugin::Convert::DBIC;
-  use Schema;
-  my $converted = GraphQL::Plugin::Convert::DBIC->to_graphql(Schema->connect);
+  use My::Local::Schema;
+  my $converted = GraphQL::Plugin::Convert::DBIC->to_graphql(My::Local::Schema->connect);
   print $converted->{schema}->to_doc;
 
 =head1 DESCRIPTION

@@ -1,3 +1,5 @@
+- clarify SYNOPSIS a bit - thanks @jamesbriggs for suggestion
+
 0.17 2019-12-28
 - get the ID correctly for delete mutations - thanks @schroeer for report
 
